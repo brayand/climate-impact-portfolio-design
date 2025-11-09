@@ -28,9 +28,9 @@
         }
         
         .header {
-            background: linear-gradient(135deg, #0a2540 0%, #1a3a52 100%);
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
             padding: 60px 80px;
-            border-bottom: 3px solid #c5a572;
+            border-bottom: 3px solid #81c784;
         }
         
         .header-content {
@@ -41,7 +41,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 16px;
             font-weight: 300;
-            color: #c5a572;
+            color: #81c784;
             letter-spacing: 3px;
             text-transform: uppercase;
             margin-bottom: 20px;
@@ -84,7 +84,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 28px;
             font-weight: 600;
-            color: #0a2540;
+            color: #1b5e20;
             margin-bottom: 10px;
             padding-bottom: 10px;
             border-bottom: 1px solid #e0e0e0;
@@ -108,7 +108,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 18px;
             font-weight: 600;
-            color: #0a2540;
+            color: #1b5e20;
             margin-bottom: 20px;
         }
         
@@ -137,7 +137,7 @@
         
         .control-input:focus {
             outline: none;
-            border-color: #0a2540;
+            border-color: #1b5e20;
         }
         
         .btn-group {
@@ -149,7 +149,7 @@
         .btn {
             padding: 12px 24px;
             border: none;
-            background: #0a2540;
+            background: #1b5e20;
             color: white;
             font-family: 'Inter', sans-serif;
             font-size: 13px;
@@ -160,17 +160,17 @@
         }
         
         .btn:hover {
-            background: #1a3a52;
+            background: #2e7d32;
         }
         
         .btn-secondary {
             background: white;
-            color: #0a2540;
-            border: 1px solid #0a2540;
+            color: #1b5e20;
+            border: 1px solid #1b5e20;
         }
         
         .btn-secondary:hover {
-            background: #0a2540;
+            background: #1b5e20;
             color: white;
         }
         
@@ -196,7 +196,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 20px;
             font-weight: 600;
-            color: #0a2540;
+            color: #1b5e20;
         }
         
         .card-body {
@@ -212,14 +212,14 @@
         .metric {
             padding: 20px;
             background: #fafafa;
-            border-left: 3px solid #c5a572;
+            border-left: 3px solid #66bb6a;
         }
         
         .metric-value {
             font-family: 'Crimson Pro', serif;
             font-size: 32px;
             font-weight: 600;
-            color: #0a2540;
+            color: #1b5e20;
             margin-bottom: 5px;
         }
         
@@ -239,7 +239,7 @@
         }
         
         .data-table thead {
-            background: #0a2540;
+            background: #1b5e20;
             color: white;
         }
         
@@ -265,6 +265,120 @@
             background: #fafafa;
         }
         
+        .correlation-matrix-container {
+            overflow-x: auto;
+            margin: 30px 0;
+        }
+        
+        .correlation-matrix {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .correlation-matrix th {
+            background: #1b5e20;
+            color: white;
+            padding: 8px 6px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .correlation-matrix th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            background: #1b5e20;
+        }
+        
+        .correlation-matrix td {
+            padding: 8px 6px;
+            text-align: center;
+            border: 1px solid #e8e8e8;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .correlation-matrix td:first-child {
+            background: #f8f9fa;
+            font-weight: 600;
+            text-align: left;
+            padding-left: 12px;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            font-size: 10px;
+            color: #333;
+        }
+        
+        .correlation-cell {
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .correlation-cell:hover {
+            transform: scale(1.15);
+            z-index: 20;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border-radius: 3px;
+        }
+        
+        .correlation-legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 15px;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        
+        .correlation-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #333;
+        }
+        
+        .correlation-legend-color {
+            width: 30px;
+            height: 20px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+        }
+        
+        .correlation-matrix-insight {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8eaf0 100%);
+            border-left: 4px solid #66bb6a;
+            padding: 25px;
+            margin: 30px 0;
+        }
+        
+        .correlation-matrix-insight h4 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1b5e20;
+            margin-bottom: 12px;
+        }
+        
+        .correlation-matrix-insight p {
+            font-size: 12px;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
         .weight-viz {
             display: flex;
             align-items: center;
@@ -281,13 +395,13 @@
         
         .weight-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, #c5a572, #d4b483);
+            background: linear-gradient(90deg, #66bb6a, #81c784);
             transition: width 0.3s ease;
         }
         
         .weight-percentage {
             font-weight: 500;
-            color: #0a2540;
+            color: #1b5e20;
             min-width: 50px;
             text-align: right;
         }
@@ -320,7 +434,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 22px;
             font-weight: 600;
-            color: #0a2540;
+            color: #1b5e20;
             margin-bottom: 10px;
         }
         
@@ -333,7 +447,7 @@
         
         .insight-box {
             background: linear-gradient(135deg, #f8f9fa 0%, #e8eaf0 100%);
-            border-left: 4px solid #c5a572;
+            border-left: 4px solid #66bb6a;
             padding: 30px;
             margin: 30px 0;
         }
@@ -342,7 +456,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 18px;
             font-weight: 600;
-            color: #0a2540;
+            color: #1b5e20;
             margin-bottom: 15px;
         }
         
@@ -371,7 +485,7 @@
             font-family: 'Crimson Pro', serif;
             font-size: 28px;
             font-weight: 600;
-            color: #0a2540;
+            color: #1b5e20;
             margin-bottom: 8px;
         }
         
@@ -409,7 +523,7 @@
         }
         
         .footer {
-            background: #0a2540;
+            background: #1b5e20;
             padding: 40px 80px;
             color: rgba(255,255,255,0.7);
             font-size: 11px;
@@ -419,7 +533,7 @@
         .footer-title {
             font-family: 'Crimson Pro', serif;
             font-size: 14px;
-            color: #c5a572;
+            color: #81c784;
             margin-bottom: 15px;
             font-weight: 600;
         }
@@ -494,7 +608,7 @@
                     </div>
                     
                     <div class="portfolio-card">
-                        <div class="card-header" style="background: linear-gradient(135deg, #0a2540 0%, #1a3a52 100%); border: none;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%); border: none;">
                             <h3 class="card-title" style="color: white;">Optimized Portfolio</h3>
                         </div>
                         <div class="card-body">
@@ -521,6 +635,13 @@
                 <p class="section-subtitle">Individual Investment Characteristics with Portfolio-Level Optimization Impact</p>
                 
                 <div id="riskReturnAnalysis"></div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Correlation Matrix</h2>
+                <p class="section-subtitle">Investment Correlation Analysis: Understanding Diversification Opportunities and Risk Interdependencies</p>
+                
+                <div id="correlationMatrixContainer"></div>
             </div>
             
             <div class="section">
@@ -822,20 +943,20 @@
             let html = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
                     <div class="chart-container" style="padding: 30px;">
-                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #0a2540; margin-bottom: 20px;">Top Return Contributors</h4>
+                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 20px;">Top Return Contributors</h4>
                         <table style="width: 100%; font-size: 12px;">
                             ${topReturnContributors.map((c, idx) => `
                                 <tr style="border-bottom: 1px solid #f0f0f0;">
                                     <td style="padding: 10px 0; color: #666; width: 30px;">${idx + 1}.</td>
                                     <td style="padding: 10px 0;"><strong>${c.name}</strong></td>
-                                    <td style="padding: 10px 0; text-align: right; color: #0a2540; font-weight: 500;">${c.optReturnContrib.toFixed(2)}M</td>
+                                    <td style="padding: 10px 0; text-align: right; color: #1b5e20; font-weight: 500;">${c.optReturnContrib.toFixed(2)}M</td>
                                 </tr>
                             `).join('')}
                         </table>
                     </div>
                     
                     <div class="chart-container" style="padding: 30px;">
-                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #0a2540; margin-bottom: 20px;">Largest Risk Reductions</h4>
+                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 20px;">Largest Risk Reductions</h4>
                         <table style="width: 100%; font-size: 12px;">
                             ${topRiskReducers.map((c, idx) => `
                                 <tr style="border-bottom: 1px solid #f0f0f0;">
@@ -850,6 +971,107 @@
             `;
             
             document.getElementById('riskReturnAnalysis').innerHTML = html;
+        }
+
+        function displayCorrelationMatrix() {
+            const container = document.getElementById('correlationMatrixContainer');
+            
+            // Helper function to get color based on correlation value
+            function getCorrelationColor(value) {
+                // Clamp value between -1 and 1
+                const intensity = Math.max(0, Math.min(1, Math.abs(value)));
+                
+                // For positive correlations, use green shades
+                // Interpolate between light green (low correlation) and dark green (high correlation)
+                if (value >= 0) {
+                    // Dark green (1b5e20) for high correlation, light green for low
+                    const r = Math.round(27 + (240 - 27) * (1 - intensity));
+                    const g = Math.round(94 + (248 - 94) * (1 - intensity));
+                    const b = Math.round(32 + (240 - 32) * (1 - intensity));
+                    return `rgb(${r}, ${g}, ${b})`;
+                } else {
+                    // For negative correlations (rare), use light blue-gray
+                    return `rgb(220, 240, 255)`;
+                }
+            }
+            
+            // Get text color based on background
+            function getTextColor(correlation) {
+                return Math.abs(correlation) > 0.5 ? 'white' : '#333';
+            }
+            
+            // Create table header
+            let html = `
+                <div class="correlation-matrix-container">
+                    <table class="correlation-matrix">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 180px;">Investment</th>
+                                ${investments.map((inv, idx) => `<th title="${inv.name}">${idx + 1}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Create table rows
+            investments.forEach((inv, i) => {
+                html += '<tr>';
+                // First column: investment name (abbreviated)
+                const shortName = inv.name.length > 25 ? inv.name.substring(0, 22) + '...' : inv.name;
+                html += `<td title="${inv.name}">${shortName}</td>`;
+                
+                // Correlation values
+                investments.forEach((_, j) => {
+                    const correlation = correlationMatrix[i][j];
+                    const bgColor = getCorrelationColor(correlation);
+                    const textColor = getTextColor(correlation);
+                    const isDiagonal = i === j;
+                    
+                    html += `<td class="correlation-cell" 
+                             style="background-color: ${bgColor}; color: ${textColor};"
+                             title="${inv.name} ↔ ${investments[j].name}: ${correlation.toFixed(2)}">
+                             ${isDiagonal ? '1.00' : correlation.toFixed(2)}
+                             </td>`;
+                });
+                
+                html += '</tr>';
+            });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="correlation-legend">
+                    <div class="correlation-legend-item">
+                        <div class="correlation-legend-color" style="background-color: rgb(27, 94, 32);"></div>
+                        <span>Strong Positive (0.8-1.0)</span>
+                    </div>
+                    <div class="correlation-legend-item">
+                        <div class="correlation-legend-color" style="background-color: rgb(80, 140, 90);"></div>
+                        <span>Moderate Positive (0.5-0.8)</span>
+                    </div>
+                    <div class="correlation-legend-item">
+                        <div class="correlation-legend-color" style="background-color: rgb(140, 200, 150);"></div>
+                        <span>Weak Positive (0.2-0.5)</span>
+                    </div>
+                    <div class="correlation-legend-item">
+                        <div class="correlation-legend-color" style="background-color: rgb(240, 248, 240);"></div>
+                        <span>Low/Independent (&lt;0.2)</span>
+                    </div>
+                </div>
+                
+                <div class="correlation-matrix-insight">
+                    <h4>Correlation Analysis Insights</h4>
+                    <p><strong>High Correlations (≥0.7):</strong> Investments with high positive correlations tend to move together, reducing diversification benefits. These pairs include similar technologies (e.g., Solar and Wind) or related sectors (e.g., Solar-Plus-Storage and SolarTech).</p>
+                    <p><strong>Moderate Correlations (0.4-0.7):</strong> These relationships provide some diversification while maintaining sector exposure. Portfolio optimization benefits from mixing moderately correlated assets.</p>
+                    <p><strong>Low Correlations (&lt;0.4):</strong> Investments with low correlations offer significant diversification benefits. Geothermal, Tidal Energy, and Micro-Hydro show particularly low correlations with solar/wind assets, making them valuable for risk reduction.</p>
+                    <p><strong>Diagonal (1.00):</strong> Perfect self-correlation represents each investment's relationship with itself.</p>
+                    <p><strong>Portfolio Impact:</strong> The optimization algorithm uses these correlations to construct portfolios that minimize risk through diversification. Lower average portfolio correlation leads to greater risk reduction potential.</p>
+                </div>
+            `;
+            
+            container.innerHTML = html;
         }
 
         function generateEfficientFrontier() {
@@ -990,8 +1212,8 @@
                     <svg width="100%" height="600" viewBox="0 0 900 600" style="background: #fafafa; border: 1px solid #e0e0e0;">
                         <defs>
                             <linearGradient id="frontierGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" style="stop-color:#0a2540;stop-opacity:1" />
-                                <stop offset="100%" style="stop-color:#c5a572;stop-opacity:1" />
+                                <stop offset="0%" style="stop-color:#1b5e20;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#66bb6a;stop-opacity:1" />
                             </linearGradient>
                             <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
                                 <polygon points="0 0, 8 4, 0 8" fill="#2e7d32" />
@@ -1013,8 +1235,8 @@
                         `).join('')}
                         
                         <!-- Axes -->
-                        <line x1="100" y1="496" x2="820" y2="496" stroke="#0a2540" stroke-width="3"/>
-                        <line x1="100" y1="100" x2="100" y2="496" stroke="#0a2540" stroke-width="3"/>
+                        <line x1="100" y1="496" x2="820" y2="496" stroke="#1b5e20" stroke-width="3"/>
+                        <line x1="100" y1="100" x2="100" y2="496" stroke="#1b5e20" stroke-width="3"/>
                         
                         <!-- Axis Labels -->
                         <text x="460" y="545" text-anchor="middle" font-size="15" font-weight="500" fill="#666" font-family="Inter">
@@ -1064,18 +1286,18 @@ P90: ${calculateP90(inv.impact, inv.variance).toFixed(2)}M</title>
                             const x = 100 + ((p.risk - minRisk) / (maxRisk - minRisk)) * 720;
                             const y = 496 - ((p.return - minReturn) / (maxReturn - minReturn)) * 396;
                             return `
-                                <circle cx="${x}" cy="${y}" r="3" fill="#0a2540" opacity="0.3">
+                                <circle cx="${x}" cy="${y}" r="3" fill="#1b5e20" opacity="0.3">
                                     <title>Efficient Portfolio
-Return: ${p.return.toFixed(2)}M tons/year
-Risk: ±${p.risk.toFixed(2)}M tons
-Sharpe: ${p.sharpe.toFixed(2)}</title>
+                                    Return: ${p.return.toFixed(2)}M tons/year
+                                    Risk: ±${p.risk.toFixed(2)}M tons
+                                    Sharpe: ${p.sharpe.toFixed(2)}</title>
                                 </circle>
                             `;
                         }).join('')}
                         
                         <!-- Max Sharpe Point -->
-                        <circle cx="${maxSharpeX}" cy="${maxSharpeY}" r="9" fill="#c5a572" stroke="white" stroke-width="3"/>
-                        <text x="${maxSharpeX}" y="${maxSharpeY - 20}" text-anchor="middle" font-size="12" font-weight="600" fill="#c5a572" font-family="Inter">
+                        <circle cx="${maxSharpeX}" cy="${maxSharpeY}" r="9" fill="#66bb6a" stroke="white" stroke-width="3"/>
+                        <text x="${maxSharpeX}" y="${maxSharpeY - 20}" text-anchor="middle" font-size="12" font-weight="600" fill="#66bb6a" font-family="Inter">
                             MAX SHARPE: ${maxSharpePoint.sharpe.toFixed(2)}
                         </text>
                         
@@ -1086,8 +1308,8 @@ Sharpe: ${p.sharpe.toFixed(2)}</title>
                         </text>
                         
                         <!-- Optimized Portfolio -->
-                        <circle cx="${optX}" cy="${optY}" r="11" fill="#0a2540" stroke="white" stroke-width="3"/>
-                        <text x="${optX}" y="${optY - 24}" text-anchor="middle" font-size="12" font-weight="600" fill="#0a2540" font-family="Inter">
+                        <circle cx="${optX}" cy="${optY}" r="11" fill="#1b5e20" stroke="white" stroke-width="3"/>
+                        <text x="${optX}" y="${optY - 24}" text-anchor="middle" font-size="12" font-weight="600" fill="#1b5e20" font-family="Inter">
                             OPTIMIZED
                         </text>
                         
@@ -1115,7 +1337,7 @@ Sharpe: ${p.sharpe.toFixed(2)}</title>
                     
                     <div class="legend">
                         <div class="legend-item">
-                            <div class="legend-symbol" style="background: #0a2540; border: 2px solid white; border-radius: 50%;"></div>
+                            <div class="legend-symbol" style="background: #1b5e20; border: 2px solid white; border-radius: 50%;"></div>
                             <span>Optimized Portfolio</span>
                         </div>
                         <div class="legend-item">
@@ -1123,17 +1345,17 @@ Sharpe: ${p.sharpe.toFixed(2)}</title>
                             <span>Original Portfolio</span>
                         </div>
                         <div class="legend-item">
-                            <div class="legend-symbol" style="background: #c5a572; border: 2px solid white; border-radius: 50%;"></div>
+                            <div class="legend-symbol" style="background: #66bb6a; border: 2px solid white; border-radius: 50%;"></div>
                             <span>Maximum Sharpe Ratio</span>
                         </div>
                         <div class="legend-item">
-                            <div style="width: 30px; height: 2px; background: linear-gradient(90deg, #0a2540, #c5a572);"></div>
+                            <div style="width: 30px; height: 2px; background: linear-gradient(90deg, #1b5e20, #66bb6a);"></div>
                             <span>Efficient Frontier</span>
                         </div>
                     </div>
                     
                     <div style="margin-top: 25px; padding: 20px; background: #fafafa; border: 1px solid #e0e0e0;">
-                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 14px; font-weight: 600; color: #0a2540; margin-bottom: 15px;">Individual Investment Color Legend</h4>
+                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 14px; font-weight: 600; color: #1b5e20; margin-bottom: 15px;">Individual Investment Color Legend</h4>
                         <div style="display: flex; gap: 25px; flex-wrap: wrap; margin-bottom: 15px;">
                             <div class="legend-item">
                                 <div class="legend-symbol" style="background: #2e7d32; border: 1.5px solid white; border-radius: 50%;"></div>
@@ -1175,7 +1397,7 @@ Sharpe: ${p.sharpe.toFixed(2)}</title>
                     </div>
                     
                     <div style="margin-top: 30px; padding: 25px; background: #fafafa; border: 1px solid #e0e0e0;">
-                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #0a2540; margin-bottom: 15px;">Individual Investment Reference</h4>
+                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 15px;">Individual Investment Reference</h4>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 20px; font-size: 11px;">
                             ${investments.map((inv, idx) => {
                                 const sharpe = inv.impact / inv.variance;
@@ -1205,6 +1427,7 @@ Sharpe: ${p.sharpe.toFixed(2)}</title>
 
         window.addEventListener('load', function() {
             optimizePortfolio();
+            displayCorrelationMatrix();
             setTimeout(() => generateEfficientFrontier(), 1000);
         });
     </script>

@@ -97,6 +97,57 @@
             margin-bottom: 30px;
         }
         
+        .objectives-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-left: 4px solid #1b5e20;
+            padding: 40px;
+            margin-bottom: 50px;
+        }
+        
+        .objectives-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: #1b5e20;
+            margin-bottom: 25px;
+        }
+        
+        .objectives-content {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .objectives-content p {
+            margin-bottom: 15px;
+        }
+        
+        .objectives-list {
+            margin: 20px 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .objectives-list li {
+            padding: 12px 0 12px 35px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+        
+        .objectives-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2e7d32;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        
+        .objectives-list li strong {
+            color: #1b5e20;
+            font-weight: 600;
+        }
+        
         .controls-panel {
             background: #f8f9fa;
             border: 1px solid #e0e0e0;
@@ -571,6 +622,29 @@
         </div>
         
         <div class="content">
+            <div class="objectives-section">
+                <h2 class="objectives-title">Project Objectives</h2>
+                <div class="objectives-content">
+                    <p>This Climate Impact Portfolio Optimization project applies quantitative portfolio theory to renewable energy infrastructure investments, enabling data-driven decision-making for maximizing climate impact while managing risk. The primary goals of this analysis are:</p>
+                    
+                    <ul class="objectives-list">
+                        <li><strong>Optimize Portfolio Risk-Adjusted Returns:</strong> Apply Modern Portfolio Theory (MPT) principles to construct minimum variance portfolios that maximize climate impact (measured in CO2e reduction) while minimizing portfolio-level risk through strategic diversification.</li>
+                        
+                        <li><strong>Quantify Climate Impact Performance:</strong> Translate traditional financial metrics into climate impact measurements, evaluating investments based on expected CO2e reduction (impact), variance (risk), and risk-adjusted ratios (Sharpe ratio).</li>
+                        
+                        <li><strong>Enable Data-Driven Allocation Decisions:</strong> Provide interactive tools and visualizations that allow portfolio managers to understand the trade-offs between risk and impact, compare optimization strategies, and make informed capital allocation decisions.</li>
+                        
+                        <li><strong>Demonstrate Diversification Benefits:</strong> Illustrate how correlation analysis and portfolio optimization can achieve superior risk-adjusted performance compared to equal-weight or single-asset strategies, highlighting the value of diversification in climate impact investing.</li>
+                        
+                        <li><strong>Support Stakeholder Communication:</strong> Generate clear, professional reports with actionable insights including P90 estimates, efficient frontier analysis, and risk-return visualizations that facilitate transparent communication with investors, stakeholders, and regulatory bodies.</li>
+                        
+                        <li><strong>Enable Scenario Analysis:</strong> Allow portfolio managers to test different optimization parameters (minimum return targets, weight constraints) and visualize outcomes through efficient frontier generation, supporting strategic planning and risk management.</li>
+                    </ul>
+                    
+                    <p>By combining rigorous quantitative analysis with climate impact measurement, this project bridges the gap between traditional portfolio optimization and sustainable investing, providing a framework for making investment decisions that align financial performance with environmental objectives.</p>
+                </div>
+            </div>
+            
             <div class="section">
                 <div class="controls-panel">
                     <h3 class="controls-title">Optimization Parameters</h3>

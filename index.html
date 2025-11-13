@@ -649,7 +649,27 @@
                 <p class="section-subtitle">Detail of Original Portfolio</p>
                 
                 <table class="data-table" id="originalPortfolioTable"></table>
+                <div class="portfolio-comparison">
+                    <div class="portfolio-card">
+                        <div class="card-header">
+                            <h3 class="card-title">Original Portfolio</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="metrics-grid" id="originalMetrics"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="portfolio-card">
+                        <div class="card-header">
+                            <h3 class="card-title" >Sector Allocation</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="sectorAllocationChart"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <div class="section">
                 <div class="controls-panel">
                     <h3 class="controls-title">Optimization Parameters</h3>
@@ -1062,6 +1082,7 @@
             displayOptimizationSummary(originalReturn, originalVariance, originalSharpe, 
                                       optimizedReturn, optimizedVariance, optimizedSharpe);
             displayOriginalPortfolioTable(originalWeights, totalAmount);
+            displaySectorAllocationChart(originalWeights);
             displayWeightsTable(originalWeights, optimizedWeights, totalAmount);
             displayRiskReturnAnalysis(originalWeights, optimizedWeights, covMatrix);
         }
@@ -1131,9 +1152,12 @@
                     <tr>
                         <th>Investment Name</th>
                         <th>Description</th>
+                        <th style="text-align: right;">Amount</th>
+                        <th>Sector</th>
                         <th style="text-align: right;">Expected Impact</th>
                         <th style="text-align: right;">Risk</th>
                         <th style="text-align: right;">Sharpe Ratio</th>
+                        <th>Correlations</th>
                         <th style="text-align: center;">Original Weight</th>
                     </tr>
                 </thead>
@@ -1150,11 +1174,14 @@
                     <tr>
                         <td><strong>${inv.name}</strong></td>
                         <td>${inv.description}</td>
+                        <td style="text-align: right;">$${inv.amount}M</td>
+                        <td>${inv.sector}</td>
                         <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
                         <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
                         </td>
+                        <td style="font-size: 11px; color: #666;">${inv.correlations}</td>
                         <td>
                             <div class="weight-viz">
                                 <div class="weight-bar-container">
@@ -1169,6 +1196,120 @@
             
             html += '</tbody>';
             document.getElementById('originalPortfolioTable').innerHTML = html;
+        }
+
+        function displaySectorAllocationChart(weights) {
+            // Calculate sector allocation
+            const sectorAllocation = {};
+            investments.forEach((inv, i) => {
+                const sector = inv.sector;
+                if (!sectorAllocation[sector]) {
+                    sectorAllocation[sector] = 0;
+                }
+                sectorAllocation[sector] += weights[i];
+            });
+
+            // Convert to array and sort by value
+            const sectors = Object.entries(sectorAllocation)
+                .map(([sector, weight]) => ({ sector, weight: weight * 100 }))
+                .sort((a, b) => b.weight - a.weight);
+
+            // Color palette for sectors
+            const colors = [
+                '#1b5e20', '#2e7d32', '#66bb6a', '#81c784', '#a5d6a7',
+                '#388e3c', '#4caf50', '#8bc34a', '#9ccc65', '#c5e1a5',
+                '#558b2f', '#689f38', '#7cb342', '#9ccc65', '#aed581'
+            ];
+
+            // Create pie chart
+            const container = document.getElementById('sectorAllocationChart');
+            const size = 280;
+            const radius = size / 2 - 10;
+            const centerX = size / 2;
+            const centerY = size / 2;
+
+            let currentAngle = -Math.PI / 2; // Start at top
+            let html = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="max-width: 100%; height: auto;">`;
+
+            // Draw pie slices
+            sectors.forEach((item, index) => {
+                const sliceAngle = (item.weight / 100) * 2 * Math.PI;
+                const startAngle = currentAngle;
+                const endAngle = currentAngle + sliceAngle;
+
+                const x1 = centerX + radius * Math.cos(startAngle);
+                const y1 = centerY + radius * Math.sin(startAngle);
+                const x2 = centerX + radius * Math.cos(endAngle);
+                const y2 = centerY + radius * Math.sin(endAngle);
+
+                const largeArcFlag = sliceAngle > Math.PI ? 1 : 0;
+
+                const pathData = [
+                    `M ${centerX} ${centerY}`,
+                    `L ${x1} ${y1}`,
+                    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                    'Z'
+                ].join(' ');
+
+                const color = colors[index % colors.length];
+                const midAngle = startAngle + sliceAngle / 2;
+                const labelRadius = radius * 0.7;
+                const labelX = centerX + labelRadius * Math.cos(midAngle);
+                const labelY = centerY + labelRadius * Math.sin(midAngle);
+
+                html += `
+                    <path d="${pathData}" 
+                          fill="${color}" 
+                          stroke="white" 
+                          stroke-width="2"
+                          opacity="0.9">
+                        <title>${item.sector}: ${item.weight.toFixed(1)}%</title>
+                    </path>
+                `;
+
+                // Add percentage label if slice is large enough
+                if (item.weight > 3) {
+                    html += `
+                        <text x="${labelX}" y="${labelY}" 
+                              text-anchor="middle" 
+                              dominant-baseline="middle"
+                              font-size="11" 
+                              font-weight="600" 
+                              fill="white"
+                              font-family="Inter">
+                            ${item.weight.toFixed(0)}%
+                        </text>
+                    `;
+                }
+
+                currentAngle = endAngle;
+            });
+
+            html += '</svg>';
+
+            // Add legend
+            html += `
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 11px;">
+            `;
+
+            sectors.forEach((item, index) => {
+                const color = colors[index % colors.length];
+                html += `
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <div style="width: 12px; height: 12px; background: ${color}; border-radius: 2px; flex-shrink: 0;"></div>
+                        <span style="color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${item.sector}">${item.sector}</span>
+                        <span style="color: #666; margin-left: auto; font-weight: 500;">${item.weight.toFixed(1)}%</span>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
         }
 
         function displayWeightsTable(originalWeights, optimizedWeights, totalAmount) {

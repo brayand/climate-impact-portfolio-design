@@ -625,7 +625,7 @@
             <div class="objectives-section">
                 <h2 class="objectives-title">Project Objectives</h2>
                 <div class="objectives-content">
-                    <p>This Climate Impact Portfolio Optimization project applies quantitative portfolio theory to renewable energy infrastructure investments, enabling data-driven decision-making for maximizing climate impact while managing risk. The primary goals of this analysis are:</p>
+                    <p>This Climate Impact Portfolio Optimization project applies quantitative portfolio theory to renewable energy infrastructure investments, enabling data-driven decision-making for maximizing climate impact while managing risk when building portfolios. The primary goals of this analysis are:</p>
                     
                     <ul class="objectives-list">
                         <li><strong>Optimize Portfolio Risk-Adjusted Returns:</strong> Apply Modern Portfolio Theory (MPT) principles to construct minimum variance portfolios that maximize climate impact (measured in CO2e reduction) while minimizing portfolio-level risk through strategic diversification.</li>
@@ -644,7 +644,12 @@
                     <p>By combining rigorous quantitative analysis with climate impact measurement, this project bridges the gap between traditional portfolio optimization and sustainable investing, providing a framework for making investment decisions that align financial performance with environmental objectives.</p>
                 </div>
             </div>
-            
+            <div class="section">
+                <h2 class="section-title">Original Portfolio</h2>
+                <p class="section-subtitle">Detail of Original Portfolio</p>
+                
+                <table class="data-table" id="originalPortfolioTable"></table>
+            </div>
             <div class="section">
                 <div class="controls-panel">
                     <h3 class="controls-title">Optimization Parameters</h3>
@@ -962,7 +967,9 @@
             for (let i = 0; i < n; i++) {
                 covMatrix[i] = [];
                 for (let j = 0; j < n; j++) {
-                    covMatrix[i][j] = correlationMatrix[i][j] * investments[i].variance * investments[j].variance;
+                    const varI = investments[i].variance || 0.1;
+                    const varJ = investments[j].variance || 0.1;
+                    covMatrix[i][j] = correlationMatrix[i][j] * varI * varJ;
                 }
             }
             return covMatrix;
@@ -981,7 +988,7 @@
         }
 
         function calculatePortfolioReturn(weights) {
-            return weights.reduce((sum, w, i) => sum + w * investments[i].impact, 0);
+            return weights.reduce((sum, w, i) => sum + w * (investments[i].impactValue || 0), 0);
         }
 
         function calculateP90(mean, stdDev) {
@@ -1019,7 +1026,7 @@
                 
                 const currentReturn = calculatePortfolioReturn(weights);
                 if (currentReturn < minReturn) {
-                    const returns = investments.map(inv => inv.impact);
+                    const returns = investments.map(inv => inv.impactValue || 0);
                     const maxReturn = Math.max(...returns);
                     for (let i = 0; i < n; i++) {
                         weights[i] += learningRate * (returns[i] / maxReturn) * 0.1;
@@ -1054,6 +1061,7 @@
             displayMetrics('optimizedMetrics', optimizedReturn, optimizedVariance, optimizedSharpe, totalAmount);
             displayOptimizationSummary(originalReturn, originalVariance, originalSharpe, 
                                       optimizedReturn, optimizedVariance, optimizedSharpe);
+            displayOriginalPortfolioTable(originalWeights, totalAmount);
             displayWeightsTable(originalWeights, optimizedWeights, totalAmount);
             displayRiskReturnAnalysis(originalWeights, optimizedWeights, covMatrix);
         }
@@ -1117,6 +1125,52 @@
             `;
         }
 
+        function displayOriginalPortfolioTable(originalWeights, totalAmount) {
+            let html = `
+                <thead>
+                    <tr>
+                        <th>Investment Name</th>
+                        <th>Description</th>
+                        <th style="text-align: right;">Expected Impact</th>
+                        <th style="text-align: right;">Risk</th>
+                        <th style="text-align: right;">Sharpe Ratio</th>
+                        <th style="text-align: center;">Original Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            investments.forEach((inv, i) => {
+                const origWeight = originalWeights[i];
+                const impactVal = inv.impactValue || 0;
+                const sharpe = impactVal / (inv.variance || 0.1);
+                const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
+                
+                html += `
+                    <tr>
+                        <td><strong>${inv.name}</strong></td>
+                        <td>${inv.description}</td>
+                        <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
+                        <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
+                        <td style="text-align: right;">
+                            <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
+                        </td>
+                        <td>
+                            <div class="weight-viz">
+                                <div class="weight-bar-container">
+                                    <div class="weight-bar-fill" style="width: ${origWeight * 100}%; background: #e0e0e0;"></div>
+                                </div>
+                                <span class="weight-percentage">${(origWeight * 100).toFixed(1)}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody>';
+            document.getElementById('originalPortfolioTable').innerHTML = html;
+        }
+
         function displayWeightsTable(originalWeights, optimizedWeights, totalAmount) {
             let html = `
                 <thead>
@@ -1138,15 +1192,16 @@
                 const origWeight = originalWeights[i];
                 const optWeight = optimizedWeights[i];
                 const change = ((optWeight - origWeight) / origWeight * 100);
-                const p90 = calculateP90(inv.impact, inv.variance);
-                const sharpe = inv.impact / inv.variance;
+                const impactVal = inv.impactValue || 0;
+                const p90 = calculateP90(impactVal, inv.variance || 0.1);
+                const sharpe = impactVal / (inv.variance || 0.1);
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                 
                 html += `
                     <tr>
                         <td><strong>${inv.name}</strong></td>
-                        <td style="text-align: right;">${inv.impact.toFixed(2)}M tons</td>
-                        <td style="text-align: right;">±${inv.variance.toFixed(2)}M</td>
+                        <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
+                        <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
                         </td>
@@ -1183,8 +1238,8 @@
         function displayRiskReturnAnalysis(originalWeights, optimizedWeights, covMatrix) {
             const contributions = investments.map((inv, i) => ({
                 name: inv.name,
-                optReturnContrib: optimizedWeights[i] * inv.impact,
-                riskChange: (optimizedWeights[i] - originalWeights[i]) * inv.variance
+                optReturnContrib: optimizedWeights[i] * (inv.impactValue || 0),
+                riskChange: (optimizedWeights[i] - originalWeights[i]) * (inv.variance || 0.1)
             }));
             
             const topReturnContributors = contributions
@@ -1388,7 +1443,7 @@
                 
                 const currentReturn = calculatePortfolioReturn(weights);
                 if (Math.abs(currentReturn - targetReturn) > 0.5) {
-                    const returns = investments.map(inv => inv.impact);
+                    const returns = investments.map(inv => inv.impactValue || 0);
                     const maxReturn = Math.max(...returns);
                     const adjustment = (targetReturn - currentReturn) / targetReturn;
                     
@@ -1408,8 +1463,8 @@
             const container = document.getElementById('efficientFrontierContainer');
             
             // Calculate bounds including individual investments
-            const allRisks = [...points.map(p => p.risk), ...investments.map(inv => inv.variance), origRisk, optRisk];
-            const allReturns = [...points.map(p => p.return), ...investments.map(inv => inv.impact), origReturn, optReturn];
+            const allRisks = [...points.map(p => p.risk), ...investments.map(inv => inv.variance || 0.1), origRisk, optRisk];
+            const allReturns = [...points.map(p => p.return), ...investments.map(inv => inv.impactValue || 0), origReturn, optReturn];
             
             const minRisk = Math.min(...allRisks) * 0.9;
             const maxRisk = Math.max(...allRisks) * 1.1;
@@ -1515,19 +1570,21 @@
                         
                         <!-- Individual Investments -->
                         ${investments.map((inv, idx) => {
-                            const invX = 100 + ((inv.variance - minRisk) / (maxRisk - minRisk)) * 720;
-                            const invY = 496 - ((inv.impact - minReturn) / (maxReturn - minReturn)) * 396;
-                            const sharpe = inv.impact / inv.variance;
+                            const impactVal = inv.impactValue || 0;
+                            const varianceVal = inv.variance || 0.1;
+                            const invX = 100 + ((varianceVal - minRisk) / (maxRisk - minRisk)) * 720;
+                            const invY = 496 - ((impactVal - minReturn) / (maxReturn - minReturn)) * 396;
+                            const sharpe = impactVal / varianceVal;
                             const color = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                             
                             return `
                                 <g class="investment-point">
                                     <circle cx="${invX}" cy="${invY}" r="8" fill="${color}" opacity="0.8" stroke="white" stroke-width="2">
                                         <title>${inv.name}
-Impact: ${inv.impact}M tons/year
-Risk: ±${inv.variance}M tons
+Impact: ${impactVal > 0 ? impactVal + 'M tons/year' : 'N/A'}
+Risk: ±${varianceVal}M tons
 Sharpe: ${sharpe.toFixed(2)}
-P90: ${calculateP90(inv.impact, inv.variance).toFixed(2)}M</title>
+P90: ${impactVal > 0 ? calculateP90(impactVal, varianceVal).toFixed(2) + 'M' : 'N/A'}</title>
                                     </circle>
                                     <text x="${invX}" y="${invY + 2}" text-anchor="middle" font-size="11" fill="white" font-weight="700" font-family="Inter">
                                         ${idx + 1}
@@ -1656,7 +1713,9 @@ P90: ${calculateP90(inv.impact, inv.variance).toFixed(2)}M</title>
                         <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 15px;">Individual Investment Reference</h4>
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 20px; font-size: 11px;">
                             ${investments.map((inv, idx) => {
-                                const sharpe = inv.impact / inv.variance;
+                                const impactVal = inv.impactValue || 0;
+                                const varianceVal = inv.variance || 0.1;
+                                const sharpe = impactVal / varianceVal;
                                 const color = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                                 return `
                                     <div style="display: flex; align-items: center; gap: 8px;">

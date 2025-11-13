@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climate Impact Portfolio - Renewable Energy Investments</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+        .table-container {
+            overflow-x: auto;
+            max-height: 80vh;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        td {
+            border: 1px solid #dee2e6;
+            padding: 10px 8px;
+            vertical-align: top;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        .investment-amount {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .impact-metric {
+            color: #1976d2;
+            font-weight: 500;
+        }
+        .correlation-high {
+            background-color: #ffcdd2;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        .correlation-medium {
+            background-color: #fff3e0;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        .correlation-low {
+            background-color: #e8f5e8;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10px;
+        }
+        .sector-tag {
+            background: #e1f5fe;
+            color: #0277bd;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .description {
+            max-width: 200px;
+            line-height: 1.3;
+        }
+        .summary {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+        .summary-item {
+            text-align: center;
+            margin: 5px;
+        }
+        .summary-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
+        .export-buttons {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+        .export-btn {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .export-btn:hover {
+            background: #1b5e20;
+        }
+        @media (max-width: 768px) {
+            table {
+                font-size: 10px;
+            }
+            th, td {
+                padding: 6px 4px;
+            }
+            .description {
+                max-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Climate Impact Portfolio - Renewable Energy Infrastructure</h1>
+            <p>Investments 1-15 | Total Value: $357M | Expected Impact: 32.3M tons CO2e/year</p>
+        </div>
+        
+        <div class="table-container">
+            <table id="investmentTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Investment Name</th>
+                        <th>Sector</th>
+                        <th>Investment Amount</th>
+                        <th>Description</th>
+                        <th>Impact Type</th>
+                        <th>Potential Impact</th>
+                        <th>Impact Variance</th>
+                        <th>Key Correlations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>SolarTech Global Fund</td>
+                        <td><span class="sector-tag">Solar Energy</span></td>
+                        <td class="investment-amount">$25M</td>
+                        <td class="description">Utility-scale solar installations in Southeast Asia</td>
+                        <td>GHG Reduction</td>
+                        <td class="impact-metric">2.5M tons CO2e/year</td>
+                        <td>±0.3M tons</td>
+                        <td><span class="correlation-high">High: #2,#3,#4</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>WindPower Emerging Markets</td>
+                        <td><span class="sector-tag">Wind Energy</span></td>
+                        <td class="investment-amount">$30M</td>
+                        <td class="description">Onshore and offshore wind farms in Latin America</td>
+                        <td>GHG Reduction</td>
+                        <td class="impact-metric">3.2M tons CO2e/year</td>
+                        <td>±0.4M tons</td>
+                        <td><span class="correlation-high">High: #1,#3</span> <span class="correlation-medium">Med: #15</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Hydroelectric Development Corp</td>
+                        <td><span class="sector-tag">Hydroelectric</span></td>
+                        <td class="investment-amount">$20M</td>
+                        <td class="description">Small-scale run-of-river hydro projects in Africa</td>
+                        <td>GHG Reduction</td>
+                        <td class="impact-metric">1.8M tons CO2e/year</td>
+                        <td>±0.2M tons</td>
+                        <td><span class="correlation-medium">Med: #1,#2</span> <span class="correlation-high">High: #6</span></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>Geothermal Energy Ventures</td>
+                        <td><span class="sector-tag">Geothermal</span></td>
+                        <td class="investment-amount">$18M</td>
+                        <td class="description">Enhanced geothermal systems in volcanic regions</td>
+                        <td>GHG Reduction</td>
+                        <td class="impact-metric">2.1M tons CO2e/year</td>
+                        <td>±0.15M tons</td>
+                        <td><span class="correlation-low">Low correlation</span></td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>Community Solar Initiative</td>
+                        <td><span class="sector-tag">Distributed Solar</span></td>
+                        <td class="investment-amount">$15M</td>
+                        <td class="description">Rooftop and community solar in underserved communities</td>
+                        <td>Energy Access + GHG</td>
+                        <td class="impact-metric">1.2M tons CO2e/year + 50k households</td>
+                        <td>±0.2M tons</td>
+                        <td><span class="correlation-medium">Med: #1</span> <span class="correlation-high">High: #41</span></td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>Micro-Hydro Rural Electrification</td>
+                        <td><span class="sector-tag">Small Hydro</span></td>
+                        <td class="investment-amount">$12M</td>
+                        <td class="description">Village-scale hydro systems in mountainous regions</td>
+                        <td>Energy Access</td>
+                        <td class="impact-metric">200k people with clean electricity</td>
+                        <td>±30k people</td>
+                        <td><span class="correlation-high">High: #3,#5</span></td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>Floating Solar Platforms</td>
+                        <td><span class="sector-tag">Floating Solar</span></td>
+                        <td class="investment-amount">$22M</td>
+                        <td class="description">Solar installations on water bodies to reduce evaporation</td>
+                        <td>GHG + Water Conservation</td>
+                        <td class="impact-metric">2.0M tons CO2e/year + 15% water savings</td>
+                        <td>±0.3M tons</td>
+                        <td><span class="correlation-medium">Med: #1,#5,#8</span></td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>Smart Grid Integration Fund</td>
+                        <td><span class="sector-tag">Grid Infrastructure</span></td>
+                        <td class="investment-amount">$16M</td>
+                        <td class="description">AI-powered grid optimization for renewable integration</td>
+                        <td>Energy Efficiency</td>
+                        <td class="impact-metric">1.5M tons CO2e/year (5% efficiency)</td>
+                        <td>±0.4M tons</td>
+                        <td><span class="correlation-high">High: All renewables</span></td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>Biomass Energy Cooperative</td>
+                        <td><span class="sector-tag">Biomass</span></td>
+                        <td class="investment-amount">$14M</td>
+                        <td class="description">Agricultural waste-to-energy plants</td>
+                        <td>GHG + Waste Management</td>
+                        <td class="impact-metric">1.1M tons CO2e/year + waste diversion</td>
+                        <td>±0.2M tons</td>
+                        <td><span class="correlation-high">High: #17</span> <span class="correlation-medium">Med: #19</span></td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>Tidal Energy Development</td>
+                        <td><span class="sector-tag">Marine Energy</span></td>
+                        <td class="investment-amount">$25M</td>
+                        <td class="description">Tidal and wave energy systems in coastal areas</td>
+                        <td>GHG Reduction</td>
+                        <td class="impact-metric">2.3M tons CO2e/year</td>
+                        <td>±0.25M tons</td>
+                        <td><span class="correlation-low">Low correlation</span> <span class="correlation-medium">Med: coastal</span></td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>Solar-Plus-Storage Systems</td>
+                        <td><span class="sector-tag">Solar + Storage</span></td>
+                        <td class="investment-amount">$28M</td>
+                        <td class="description">Integrated solar and battery systems</td>
+                        <td>GHG + Grid Stability</td>
+                        <td class="impact-metric">2.8M tons CO2e/year + resilience</td>
+                        <td>±0.35M tons</td>
+                        <td><span class="correlation-high">High: #1,#5,#15</span></td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td>Wind-Solar Hybrid Parks</td>
+                        <td><span class="sector-tag">Hybrid Renewables</span></td>
+                        <td class="investment-amount">$32M</td>
+                        <td class="description">Co-located wind and solar with shared infrastructure</td>
+                        <td>GHG Reduction</td>
+                        <td class="impact-metric">3.5M tons CO2e/year</td>
+                        <td>±0.4M tons</td>
+                        <td><span class="correlation-high">High: #1,#2</span></td>
+                    </tr>
+                    <tr>
+                        <td>13</td>
+                        <td>Green Hydrogen Production</td>
+                        <td><span class="sector-tag">Hydrogen</span></td>
+                        <td class="investment-amount">$35M</td>
+                        <td class="description">Electrolysis plants powered by renewable energy</td>
+                        <td>Industrial Decarbonization</td>
+                        <td class="impact-metric">2.2M tons CO2e/year (replacing grey H2)</td>
+                        <td>±0.5M tons</td>
+                        <td><span class="correlation-medium">Med: renewables</span> <span class="correlation-high">High: #29</span></td>
+                    </tr>
+                    <tr>
+                        <td>14</td>
+                        <td>Renewable Energy Certificates Trading</td>
+                        <td><span class="sector-tag">Carbon Markets</span></td>
+                        <td class="investment-amount">$8M</td>
+                        <td class="description">Platform for trading renewable energy certificates</td>
+                        <td>Market Development</td>
+                        <td class="impact-metric">Enable 5M tons CO2e/year market efficiency</td>
+                        <td>±1M tons</td>
+                        <td><span class="correlation-medium">Med: All renewables</span></td>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                        <td>Grid-Scale Battery Storage</td>
+                        <td><span class="sector-tag">Energy Storage</span></td>
+                        <td class="investment-amount">$40M</td>
+                        <td class="description">Lithium-ion and alternative battery systems</td>
+                        <td>Grid Stability + Renewable Integration</td>
+                        <td class="impact-metric">Enable 4M tons CO2e/year renewable integration</td>
+                        <td>±0.6M tons</td>
+                        <td><span class="correlation-high">High: #1,#2,#7,#10,#12</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="summary">
+            <div class="summary-item">
+                <div class="summary-value">$357M</div>
+                <div class="summary-label">Total Investment</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value">32.3M</div>
+                <div class="summary-label">tons CO2e/year</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value">±4.85M</div>
+                <div class="summary-label">Impact Variance</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value">250k</div>
+                <div class="summary-label">People Benefited</div>
+            </div>
+        </div>
+        
+        <div class="export-buttons">
+            <button class="export-btn" onclick="exportToCSV()">Export to CSV</button>
+            <button class="export-btn" onclick="copyToClipboard()">Copy Table</button>
+            <button class="export-btn" onclick="printTable()">Print</button>
+        </div>
+    </div>
+
+    <script>
+        function exportToCSV() {
+            const table = document.getElementById('investmentTable');
+            let csv = '';
+            
+            // Get headers
+            const headers = table.querySelectorAll('th');
+            const headerRow = Array.from(headers).map(th => `"${th.textContent.trim()}"`).join(',');
+            csv += headerRow + '\n';
+            
+            // Get data rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = Array.from(cells).map(td => {
+                    // Clean up cell content, remove HTML tags
+                    let content = td.textContent.trim();
+                    content = content.replace(/"/g, '""'); // Escape quotes
+                    return `"${content}"`;
+                }).join(',');
+                csv += rowData + '\n';
+            });
+            
+            // Download CSV
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'climate_portfolio_renewables_1-15.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function copyToClipboard() {
+            const table = document.getElementById('investmentTable');
+            let tableText = '';
+            
+            // Get headers
+            const headers = table.querySelectorAll('th');
+            const headerRow = Array.from(headers).map(th => th.textContent.trim()).join('\t');
+            tableText += headerRow + '\n';
+            
+            // Get data rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = Array.from(cells).map(td => td.textContent.trim()).join('\t');
+                tableText += rowData + '\n';
+            });
+            
+            navigator.clipboard.writeText(tableText).then(() => {
+                alert('Table copied to clipboard! You can now paste it into Excel or Google Sheets.');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = tableText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Table copied to clipboard!');
+            });
+        }
+        
+        function printTable() {
+            window.print();
+        }
+        
+        // Add sorting functionality
+        document.querySelectorAll('th').forEach((header, index) => {
+            header.style.cursor = 'pointer';
+            header.addEventListener('click', () => sortTable(index));
+        });
+        
+        function sortTable(columnIndex) {
+            const table = document.getElementById('investmentTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Determine sort direction
+            const isAscending = !table.dataset.sortAsc || table.dataset.sortAsc === 'false';
+            table.dataset.sortAsc = isAscending;
+            
+            rows.sort((a, b) => {
+                const aValue = a.children[columnIndex].textContent.trim();
+                const bValue = b.children[columnIndex].textContent.trim();
+                
+                // Try to parse as numbers (for investment amounts and impact metrics)
+                const aNum = parseFloat(aValue.replace(/[^\d.-]/g, ''));
+                const bNum = parseFloat(bValue.replace(/[^\d.-]/g, ''));
+                
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAscending ? aNum - bNum : bNum - aNum;
+                } else {
+                    return isAscending ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+                }
+            });
+            
+            // Clear and re-append sorted rows
+            tbody.innerHTML = '';
+            rows.forEach(row => tbody.appendChild(row));
+            
+            // Update header indicators
+            document.querySelectorAll('th').forEach(th => {
+                th.style.backgroundColor = '#f8f9fa';
+            });
+            document.querySelectorAll('th')[columnIndex].style.backgroundColor = isAscending ? '#e3f2fd' : '#fff3e0';
+        }
+    </script>
+</body>
+</html>

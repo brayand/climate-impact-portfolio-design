@@ -727,25 +727,7 @@
                 <h3 class="subsection-title">Optimization Results</h3>
                 <p class="subsection-subtitle">Comparative Analysis of Equal-Weight vs. Minimum Variance Allocation Strategy</p>
                 
-                <div class="portfolio-comparison">
-                    <div class="portfolio-card">
-                        <div class="card-header">
-                            <h3 class="card-title">Original Portfolio</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="metrics-grid" id="originalMetrics"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="portfolio-card">
-                        <div class="card-header" style="background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%); border: none;">
-                            <h3 class="card-title" style="color: white;">Optimized Portfolio</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="metrics-grid" id="optimizedMetrics"></div>
-                        </div>
-                    </div>
-                </div>
+                
                 
                 <div id="metricChanges" style="margin-top: 40px;"></div>
                 
@@ -1124,7 +1106,7 @@
             currentOptimizedRisk = optimizedVariance;
             
             displayMetrics('originalMetrics', originalReturn, originalVariance, originalSharpe, totalAmount);
-            displayMetrics('optimizedMetrics', optimizedReturn, optimizedVariance, optimizedSharpe, totalAmount);
+            
             displayMetricChanges(originalReturn, originalVariance, originalSharpe, optimizedReturn, optimizedVariance, optimizedSharpe);
             displayOptimizationSummary(originalReturn, originalVariance, originalSharpe, 
                                       optimizedReturn, optimizedVariance, optimizedSharpe);

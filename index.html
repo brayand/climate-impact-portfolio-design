@@ -90,11 +90,29 @@
             border-bottom: 1px solid #e0e0e0;
         }
         
+        .subsection-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 8px;
+            margin-top: 20px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        
         .section-subtitle {
             font-size: 14px;
             color: #666;
             font-weight: 300;
             margin-bottom: 30px;
+        }
+        
+        .subsection-subtitle {
+            font-size: 13px;
+            color: #666;
+            font-weight: 300;
+            margin-bottom: 20px;
         }
         
         .objectives-section {
@@ -622,8 +640,9 @@
         </div>
         
         <div class="content">
-            <div class="objectives-section">
-                <h2 class="objectives-title">Project Objectives</h2>
+            <div class="section">
+                <h2 class="section-title">Project Objectives</h2>
+                <p class="section-subtitle"></p>
                 <div class="objectives-content">
                     <p>This Climate Impact Portfolio Optimization project applies quantitative portfolio theory to renewable energy infrastructure investments, enabling data-driven decision-making for maximizing climate impact while managing risk when building portfolios. The primary goals of this analysis are:</p>
                     
@@ -646,7 +665,7 @@
             </div>
             <div class="section">
                 <h2 class="section-title">Original Portfolio</h2>
-                <p class="section-subtitle">Detail of Original Portfolio</p>
+                <p class="section-subtitle">Details of Original Portfolio</p>
                 
                 <table class="data-table" id="originalPortfolioTable"></table>
                 <div class="portfolio-comparison">
@@ -668,9 +687,16 @@
                         </div>
                     </div>
                 </div>
+                
+                <h3 class="subsection-title">Correlation Matrix</h3>
+                <p class="subsection-subtitle">Investment Correlation Analysis: Understanding Diversification Opportunities and Risk Interdependencies</p>
+                
+                <div id="correlationMatrixContainer"></div>
             </div>
 
             <div class="section">
+                <h2 class="section-title">Optimized Portfolio</h2>
+                <p class="section-subtitle">Creating a Minimum Variance optimized portfolio</p>
                 <div class="controls-panel">
                     <h3 class="controls-title">Optimization Parameters</h3>
                     <div class="control-group">
@@ -690,11 +716,16 @@
                         <button class="btn btn-secondary" onclick="generateEfficientFrontier()">Generate Efficient Frontier</button>
                     </div>
                 </div>
+                
+                <h3 class="subsection-title">Portfolio Allocation Analysis</h3>
+                <p class="subsection-subtitle">Detailed Comparison of Investment Weights and Capital Allocation</p>
+                
+                <table class="data-table" id="weightsTable"></table>
             </div>
             
             <div class="section">
-                <h2 class="section-title">Executive Summary</h2>
-                <p class="section-subtitle">Comparative Analysis of Equal-Weight vs. Minimum Variance Allocation Strategy</p>
+                <h3 class="subsection-title">Optimization Results</h3>
+                <p class="subsection-subtitle">Comparative Analysis of Equal-Weight vs. Minimum Variance Allocation Strategy</p>
                 
                 <div class="portfolio-comparison">
                     <div class="portfolio-card">
@@ -720,31 +751,44 @@
                     <h4 class="insight-title">Key Findings</h4>
                     <div class="insight-text" id="optimizationSummary"></div>
                 </div>
-            </div>
-            
-            <div class="section">
-                <h2 class="section-title">Portfolio Allocation Analysis</h2>
-                <p class="section-subtitle">Detailed Comparison of Investment Weights and Capital Allocation</p>
                 
-                <table class="data-table" id="weightsTable"></table>
-            </div>
-            
-            <div class="section">
-                <h2 class="section-title">Risk-Return Profile</h2>
-                <p class="section-subtitle">Individual Investment Characteristics with Portfolio-Level Optimization Impact</p>
+                <h3 class="subsection-title">Impact and Risk Contributions</h3>
+                <p class="subsection-subtitle">Individual Investment Characteristics with Portfolio-Level Optimization Impact</p>
                 
                 <div id="riskReturnAnalysis"></div>
             </div>
             
             <div class="section">
-                <h2 class="section-title">Correlation Matrix</h2>
-                <p class="section-subtitle">Investment Correlation Analysis: Understanding Diversification Opportunities and Risk Interdependencies</p>
-                
-                <div id="correlationMatrixContainer"></div>
+                <div id="efficientFrontierContainer"></div>
             </div>
             
             <div class="section">
-                <div id="efficientFrontierContainer"></div>
+                <h2 class="section-title">Future Work</h2>
+                <p class="section-subtitle">Potential Enhancements and Extensions to the Climate Impact Portfolio Optimization Framework</p>
+                
+                <div class="objectives-content">
+                    <p>The current implementation provides a solid foundation for climate impact portfolio optimization, but there are several opportunities for enhancement and extension:</p>
+                    
+                    <ul class="objectives-list">
+                        <li><strong>Dynamic Correlation Modeling:</strong> Implement time-varying correlation matrices that capture changing relationships between investments as markets evolve and technologies mature. This could incorporate regime-switching models or machine learning approaches to predict correlation structures.</li>
+                        
+                        <li><strong>Multi-Objective Optimization:</strong> Expand beyond minimum variance optimization to include multiple objectives simultaneously, such as maximizing impact while minimizing risk and maintaining liquidity constraints. This would enable Pareto frontier analysis across impact, risk, and return dimensions.</li>
+                        
+                        <li><strong>Real-Time Data Integration:</strong> Integrate live data feeds from climate impact measurement platforms, carbon markets, and renewable energy markets to enable real-time portfolio rebalancing based on current market conditions and impact metrics.</li>
+                        
+                        <li><strong>Scenario Analysis and Stress Testing:</strong> Develop comprehensive scenario analysis capabilities that model portfolio performance under various climate scenarios (e.g., different carbon pricing regimes, policy changes, technology breakthroughs) to assess resilience and adaptability.</li>
+                        
+                        <li><strong>ESG Integration:</strong> Incorporate broader Environmental, Social, and Governance (ESG) factors beyond carbon impact, including biodiversity, water usage, social impact metrics, and governance scores to create a more holistic sustainability assessment framework.</li>
+                        
+                        <li><strong>Machine Learning Enhancements:</strong> Apply machine learning techniques to improve impact prediction accuracy, optimize feature selection for risk modeling, and develop more sophisticated portfolio optimization algorithms that can handle non-linear relationships and complex constraints.</li>
+                        
+                        <li><strong>Interactive Portfolio Builder:</strong> Create a user-friendly interactive interface that allows portfolio managers to manually adjust allocations, visualize trade-offs in real-time, and explore "what-if" scenarios with immediate feedback on impact and risk metrics.</li>
+                        
+                        <li><strong>Performance Attribution Analysis:</strong> Implement detailed performance attribution that decomposes portfolio returns and impact into contributions from sector selection, investment selection, timing decisions, and optimization effects to better understand sources of value creation.</li>
+                    </ul>
+                    
+                    <p style="margin-top: 25px;">These enhancements would strengthen the framework's analytical capabilities, improve decision-making support, and enable more sophisticated climate impact investing strategies that align financial performance with environmental objectives.</p>
+                </div>
             </div>
         </div>
         
@@ -1395,7 +1439,7 @@
             let html = `
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
                     <div class="chart-container" style="padding: 30px;">
-                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 20px;">Top Return Contributors</h4>
+                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 20px;">Top Impact Contributors (in tons CO2e)</h4>
                         <table style="width: 100%; font-size: 12px;">
                             ${topReturnContributors.map((c, idx) => `
                                 <tr style="border-bottom: 1px solid #f0f0f0;">
@@ -1408,7 +1452,7 @@
                     </div>
                     
                     <div class="chart-container" style="padding: 30px;">
-                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 20px;">Largest Risk Reductions</h4>
+                        <h4 style="font-family: 'Crimson Pro', serif; font-size: 16px; font-weight: 600; color: #1b5e20; margin-bottom: 20px;">Largest Risk Reductions (in tons CO2e)</h4>
                         <table style="width: 100%; font-size: 12px;">
                             ${topRiskReducers.map((c, idx) => `
                                 <tr style="border-bottom: 1px solid #f0f0f0;">

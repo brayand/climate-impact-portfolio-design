@@ -2022,8 +2022,8 @@ P90: ${impactVal > 0 ? calculateP90(impactVal, varianceVal).toFixed(2) + 'M' : '
         }
 
         window.addEventListener('load', function() {
-            optimizePortfolio();
             displayCorrelationMatrix();
+            optimizePortfolio();
             setTimeout(() => generateEfficientFrontier(), 1000);
         });
     </script>

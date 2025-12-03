@@ -1043,35 +1043,44 @@
             return mean + 1.28 * stdDev;
         }
 
+        function calculateImpactROI(inv) {
+            if (!inv.amount || inv.amount === 0) return 0;
+            return (inv.impactValue || 0) / inv.amount;
+        }
+
+        function calculatePortfolioImpactROI(weights) {
+            return weights.reduce((sum, w, i) => sum + w * calculateImpactROI(investments[i]), 0);
+        }
+
         function optimizePortfolio() {
             const minReturn = parseFloat(document.getElementById('minReturn').value);
             const maxWeight = parseFloat(document.getElementById('maxWeight').value);
             const minWeight = parseFloat(document.getElementById('minWeight').value);
             
-            const covMatrix = calculateCovarianceMatrix();
             const n = investments.length;
             
+            // Calculate Impact ROI for all investments
+            const impactROIs = investments.map(inv => calculateImpactROI(inv));
+            const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
+            
             let weights = new Array(n).fill(1/n);
-            const learningRate = 0.001;
+            const learningRate = 0.01;
             const iterations = 5000;
             
             for (let iter = 0; iter < iterations; iter++) {
-                const gradient = new Array(n).fill(0);
+                // Maximize Impact ROI: gradient is the Impact ROI values (we add to maximize)
+                const gradient = impactROIs.map(roi => roi / maxROI);
                 
                 for (let i = 0; i < n; i++) {
-                    for (let j = 0; j < n; j++) {
-                        gradient[i] += 2 * weights[j] * covMatrix[i][j];
-                    }
-                }
-                
-                for (let i = 0; i < n; i++) {
-                    weights[i] -= learningRate * gradient[i];
+                    // Add gradient to maximize Impact ROI
+                    weights[i] += learningRate * gradient[i];
                     weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
                 }
                 
                 const sum = weights.reduce((a, b) => a + b, 0);
                 weights = weights.map(w => w / sum);
                 
+                // Ensure minimum return constraint
                 const currentReturn = calculatePortfolioReturn(weights);
                 if (currentReturn < minReturn) {
                     const returns = investments.map(inv => inv.impactValue || 0);
@@ -1295,6 +1304,7 @@
                         <th style="text-align: right;">Amount</th>
                         <th>Sector</th>
                         <th style="text-align: right;">Expected Impact</th>
+                        <th style="text-align: right;">Impact ROI</th>
                         <th style="text-align: right;">Risk</th>
                         <th style="text-align: right;">Sharpe Ratio</th>
                         <th>Correlations</th>
@@ -1307,8 +1317,10 @@
             investments.forEach((inv, i) => {
                 const origWeight = originalWeights[i];
                 const impactVal = inv.impactValue || 0;
+                const impactROI = calculateImpactROI(inv);
                 const sharpe = impactVal / (inv.variance || 0.1);
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
+                const roiColor = impactROI > 0.15 ? '#2e7d32' : impactROI > 0.10 ? '#1976d2' : impactROI > 0.05 ? '#f57c00' : '#c62828';
                 
                 html += `
                     <tr>
@@ -1317,6 +1329,9 @@
                         <td style="text-align: right;">$${inv.amount}M</td>
                         <td>${inv.sector}</td>
                         <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
+                        <td style="text-align: right;">
+                            <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
+                        </td>
                         <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
@@ -1458,6 +1473,7 @@
                     <tr>
                         <th>Investment Name</th>
                         <th style="text-align: right;">Expected Impact</th>
+                        <th style="text-align: right;">Impact ROI</th>
                         <th style="text-align: right;">Risk</th>
                         <th style="text-align: right;">Sharpe Ratio</th>
                         <th style="text-align: right;">P90 Impact</th>
@@ -1474,14 +1490,19 @@
                 const optWeight = optimizedWeights[i];
                 const change = ((optWeight - origWeight) / origWeight * 100);
                 const impactVal = inv.impactValue || 0;
+                const impactROI = calculateImpactROI(inv);
                 const p90 = calculateP90(impactVal, inv.variance || 0.1);
                 const sharpe = impactVal / (inv.variance || 0.1);
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
+                const roiColor = impactROI > 0.15 ? '#2e7d32' : impactROI > 0.10 ? '#1976d2' : impactROI > 0.05 ? '#f57c00' : '#c62828';
                 
                 html += `
                     <tr>
                         <td><strong>${inv.name}</strong></td>
                         <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
+                        <td style="text-align: right;">
+                            <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
+                        </td>
                         <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
@@ -1701,27 +1722,28 @@
             const minWeight = parseFloat(document.getElementById('minWeight').value);
             const n = investments.length;
             
+            // Calculate Impact ROI for all investments
+            const impactROIs = investments.map(inv => calculateImpactROI(inv));
+            const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
+            
             let weights = new Array(n).fill(1/n);
-            const learningRate = 0.001;
+            const learningRate = 0.01;
             const iterations = 3000;
             
             for (let iter = 0; iter < iterations; iter++) {
-                const gradient = new Array(n).fill(0);
+                // Maximize Impact ROI: gradient is the Impact ROI values (we add to maximize)
+                const gradient = impactROIs.map(roi => roi / maxROI);
                 
                 for (let i = 0; i < n; i++) {
-                    for (let j = 0; j < n; j++) {
-                        gradient[i] += 2 * weights[j] * covMatrix[i][j];
-                    }
-                }
-                
-                for (let i = 0; i < n; i++) {
-                    weights[i] -= learningRate * gradient[i];
+                    // Add gradient to maximize Impact ROI
+                    weights[i] += learningRate * gradient[i];
                     weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
                 }
                 
                 const sum = weights.reduce((a, b) => a + b, 0);
                 weights = weights.map(w => w / sum);
                 
+                // Ensure target return constraint
                 const currentReturn = calculatePortfolioReturn(weights);
                 if (Math.abs(currentReturn - targetReturn) > 0.5) {
                     const returns = investments.map(inv => inv.impactValue || 0);

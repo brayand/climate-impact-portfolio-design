@@ -1704,9 +1704,12 @@
             
             for (let i = 0; i <= steps; i++) {
                 const targetROI = minTarget + (maxTarget - minTarget) * (i / steps);
+                console.log(targetROI);
                 const weights = optimizeForTargetROI(targetROI, covMatrix);
                 const actualImpactROI = calculatePortfolioImpactROI(weights);
+                console.log(actualImpactROI);
                 const variance = calculatePortfolioVariance(weights, covMatrix);
+                console.log(variance);
                 const sharpe = actualImpactROI / variance;
                 
                 points.push({
@@ -1823,7 +1826,7 @@
             
             const minRisk = Math.min(...allRisks) * 0.9;
             const maxRisk = Math.max(...allRisks) * 1.1;
-            const minImpactROI = Math.min(...allImpactROIs.filter(roi => roi > 0)) * 0.9;
+            const minImpactROI = 0;
             const maxImpactROI = Math.max(...allImpactROIs) * 1.1;
             
             const maxSharpePoint = points.reduce((max, p) => p.sharpe > max.sharpe ? p : max);

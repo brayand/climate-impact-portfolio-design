@@ -1021,7 +1021,7 @@
             return covMatrix;
         }
 
-        function calculatePortfolioVariance(weights, covMatrix) {
+        function calculatePortfolioStdDev(weights, covMatrix) {
             const n = weights.length;
             let variance = 0;
             
@@ -1099,22 +1099,22 @@
             
             const originalWeights = investments.map(inv => inv.amount / totalAmount);
             const originalReturn = calculatePortfolioReturn(originalWeights);
-            const originalVariance = calculatePortfolioVariance(originalWeights, covMatrix);
-            const originalSharpe = originalReturn / originalVariance;
+            const originalStdDev = calculatePortfolioStdDev(originalWeights, covMatrix);
+            const originalSharpe = originalReturn / originalStdDev;
             
             const optimizedReturn = calculatePortfolioReturn(optimizedWeights);
-            const optimizedVariance = calculatePortfolioVariance(optimizedWeights, covMatrix);
-            const optimizedSharpe = optimizedReturn / optimizedVariance;
+            const optimizedStdDev = calculatePortfolioStdDev(optimizedWeights, covMatrix);
+            const optimizedSharpe = optimizedReturn / optimizedStdDev;
             
             currentOptimizedWeights = optimizedWeights;
             currentOptimizedReturn = optimizedReturn;
-            currentOptimizedRisk = optimizedVariance;
+            currentOptimizedRisk = optimizedStdDev;
             
-            displayMetrics('originalMetrics', originalReturn, originalVariance, originalSharpe, totalAmount);
+            displayMetrics('originalMetrics', originalReturn, originalStdDev, originalSharpe, totalAmount);
             
-            displayMetricChanges(originalReturn, originalVariance, originalSharpe, optimizedReturn, optimizedVariance, optimizedSharpe);
-            displayOptimizationSummary(originalReturn, originalVariance, originalSharpe, 
-                                      optimizedReturn, optimizedVariance, optimizedSharpe);
+            displayMetricChanges(originalReturn, originalStdDev, originalSharpe, optimizedReturn, optimizedStdDev, optimizedSharpe);
+            displayOptimizationSummary(originalReturn, originalStdDev, originalSharpe, 
+                                      optimizedReturn, optimizedStdDev, optimizedSharpe);
             displayOriginalPortfolioTable(originalWeights, totalAmount);
             displaySectorAllocationChart(originalWeights);
             displayWeightsTable(originalWeights, optimizedWeights, totalAmount);
@@ -1691,7 +1691,7 @@
             const totalAmount = investments.reduce((sum, inv) => sum + inv.amount, 0);
             const originalWeights = investments.map(inv => inv.amount / totalAmount);
             const originalImpactROI = calculatePortfolioImpactROI(originalWeights);
-            const originalVariance = calculatePortfolioVariance(originalWeights, covMatrix);
+            const originalStdDev = calculatePortfolioStdDev(originalWeights, covMatrix);
             
             // Calculate impactROI range for target optimization
             const impactROIs = investments.map(inv => calculateImpactROI(inv));
@@ -1707,13 +1707,13 @@
                 const weights = optimizeForTargetROI(targetROI, covMatrix);
                 const actualImpactROI = calculatePortfolioImpactROI(weights);
                 
-                const variance = calculatePortfolioVariance(weights, covMatrix);
+                const stdDev = calculatePortfolioStdDev(weights, covMatrix);
                 
-                const sharpe = actualImpactROI / variance;
+                const sharpe = actualImpactROI / stdDev;
                 
                 points.push({
                     impactROI: actualImpactROI,
-                    risk: variance,
+                    risk: stdDev,
                     sharpe: sharpe
                 });
             }
@@ -1721,7 +1721,7 @@
             const optimizedImpactROI = currentOptimizedWeights ? 
                 calculatePortfolioImpactROI(currentOptimizedWeights) : originalImpactROI;
             
-            displayEfficientFrontier(points, originalImpactROI, originalVariance, 
+            displayEfficientFrontier(points, originalImpactROI, originalStdDev, 
                                     optimizedImpactROI, currentOptimizedRisk);
         }
 

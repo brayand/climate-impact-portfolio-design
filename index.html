@@ -1727,6 +1727,18 @@
 
         
 
+        function calculatePortfolioVarianceValue(weights, covMatrix) {
+            // Returns variance (not standard deviation) for optimization
+            const n = weights.length;
+            let variance = 0;
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    variance += weights[i] * weights[j] * covMatrix[i][j];
+                }
+            }
+            return variance;
+        }
+
         function optimizeForTargetROI(targetROI, covMatrix) {
             const maxWeight = parseFloat(document.getElementById('maxWeight').value);
             const minWeight = parseFloat(document.getElementById('minWeight').value);
@@ -1736,34 +1748,58 @@
             const impactROIs = investments.map(inv => calculateImpactROI(inv));
             const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
             
+            // Start with equal weights
             let weights = new Array(n).fill(1/n);
-            const learningRate = 0.01;
-            const iterations = 3000;
+            const varianceLearningRate = 0.02;
+            const roiLearningRate = 0.005;
+            const iterations = 5000;
             
             for (let iter = 0; iter < iterations; iter++) {
-                // Maximize Impact ROI: gradient is the Impact ROI values (we add to maximize)
-                const gradient = impactROIs.map(roi => roi / maxROI);
+                const currentROI = calculatePortfolioImpactROI(weights);
+                const currentVariance = calculatePortfolioVarianceValue(weights, covMatrix);
                 
+                // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
+                const varianceGradient = new Array(n).fill(0);
                 for (let i = 0; i < n; i++) {
-                    // Add gradient to maximize Impact ROI
-                    weights[i] += learningRate * gradient[i];
+                    for (let j = 0; j < n; j++) {
+                        varianceGradient[i] += 2 * weights[j] * covMatrix[i][j];
+                    }
+                }
+                
+                // Calculate ROI gradient (normalized)
+                const roiGradient = impactROIs.map(roi => roi / maxROI);
+                
+                // Check ROI constraint
+                const roiError = targetROI - currentROI;
+                const roiConstraintActive = Math.abs(roiError) > 0.01;
+                
+                // Update weights: minimize variance while maintaining ROI constraint
+                for (let i = 0; i < n; i++) {
+                    // Move in direction that reduces variance (negative gradient)
+                    let weightChange = -varianceLearningRate * varianceGradient[i];
+                    
+                    // If ROI constraint is violated, adjust to meet it
+                    if (roiConstraintActive) {
+                        if (roiError > 0) {
+                            // ROI is below target: increase weight on high-ROI investments
+                            weightChange += roiLearningRate * roiGradient[i] * (roiError / targetROI) * 5;
+                        } else {
+                            // ROI is above target: slightly reduce weight on high-ROI investments
+                            weightChange -= roiLearningRate * roiGradient[i] * 0.5;
+                        }
+                    }
+                    
+                    weights[i] += weightChange;
                     weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
                 }
                 
+                // Normalize weights to sum to 1
                 const sum = weights.reduce((a, b) => a + b, 0);
-                weights = weights.map(w => w / sum);
-                
-                // Ensure target ROI constraint
-                const currentROI = calculatePortfolioImpactROI(weights);
-                if (Math.abs(currentROI - targetROI) > 0.01) {
-                    const adjustment = (targetROI - currentROI) / targetROI;
-                    
-                    for (let i = 0; i < n; i++) {
-                        weights[i] += learningRate * (impactROIs[i] / maxROI) * adjustment;
-                    }
-                    
-                    const newSum = weights.reduce((a, b) => a + b, 0);
-                    weights = weights.map(w => w / newSum);
+                if (sum > 0) {
+                    weights = weights.map(w => w / sum);
+                } else {
+                    // Reset if sum becomes zero (shouldn't happen, but safety check)
+                    weights = new Array(n).fill(1/n);
                 }
             }
             

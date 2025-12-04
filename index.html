@@ -1300,8 +1300,8 @@
                         <th style="text-align: right;">Amount</th>
                         <th>Sector</th>
                         <th style="text-align: right;">Expected Impact</th>
-                        <th style="text-align: right;">Impact ROI</th>
                         <th style="text-align: right;">Risk</th>
+                        <th style="text-align: right;">Impact ROI  (tons/$ invested)</th>
                         <th style="text-align: right;">Sharpe Ratio</th>
                         <th>Correlations</th>
                         <th style="text-align: center;">Original Weight</th>
@@ -1313,8 +1313,8 @@
             investments.forEach((inv, i) => {
                 const origWeight = originalWeights[i];
                 const impactVal = inv.impactValue || 0;
-                const impactROI = calculateImpactROI(inv);
                 const sharpe = impactVal / (inv.variance || 0.1);
+                const impactROI = calculateImpactROI(inv);
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                 const roiColor = impactROI > 0.15 ? '#2e7d32' : impactROI > 0.10 ? '#1976d2' : impactROI > 0.05 ? '#f57c00' : '#c62828';
                 
@@ -1325,10 +1325,11 @@
                         <td style="text-align: right;">$${inv.amount}M</td>
                         <td>${inv.sector}</td>
                         <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
+                        <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
                         </td>
-                        <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
+                      
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
                         </td>
@@ -1469,8 +1470,8 @@
                     <tr>
                         <th>Investment Name</th>
                         <th style="text-align: right;">Expected Impact</th>
-                        <th style="text-align: right;">Impact ROI</th>
                         <th style="text-align: right;">Risk</th>
+                        <th style="text-align: right;">Impact ROI (tons/$ invested)</th>
                         <th style="text-align: right;">Sharpe Ratio</th>
                         <th style="text-align: right;">P90 Impact</th>
                         <th style="text-align: center;">Original Weight</th>
@@ -1496,10 +1497,10 @@
                     <tr>
                         <td><strong>${inv.name}</strong></td>
                         <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
+                        <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
                         </td>
-                        <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
                         </td>

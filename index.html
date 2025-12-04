@@ -1739,9 +1739,7 @@
             return variance;
         }
 
-        function optimizeForTargetROI(targetROI, covMatrix) {
-            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
-            const minWeight = parseFloat(document.getElementById('minWeight').value);
+        function optimizeForTargetROI(targetROI, covMatrix, minWeight=0,maxWeight=1) {
             const n = investments.length;
             
             // Calculate Impact ROI for all investments

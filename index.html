@@ -1052,10 +1052,8 @@
             return weights.reduce((sum, w, i) => sum + w * calculateImpactROI(investments[i]), 0);
         }
 
-        function optimizePortfolio() {
-            const minReturn = parseFloat(document.getElementById('minReturn').value);
-            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
-            const minWeight = parseFloat(document.getElementById('minWeight').value);
+        function optimizePortfolio(minReturn, maxWeight, minWeight) {
+            
             
             const n = investments.length;
             
@@ -1704,12 +1702,12 @@
             
             for (let i = 0; i <= steps; i++) {
                 const targetROI = minTarget + (maxTarget - minTarget) * (i / steps);
-                console.log(targetROI);
+                
                 const weights = optimizeForTargetROI(targetROI, covMatrix);
                 const actualImpactROI = calculatePortfolioImpactROI(weights);
-                console.log(actualImpactROI);
+                
                 const variance = calculatePortfolioVariance(weights, covMatrix);
-                console.log(variance);
+                
                 const sharpe = actualImpactROI / variance;
                 
                 points.push({
@@ -1726,50 +1724,7 @@
                                     optimizedImpactROI, currentOptimizedRisk);
         }
 
-        function optimizeForTarget(targetReturn, covMatrix) {
-            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
-            const minWeight = parseFloat(document.getElementById('minWeight').value);
-            const n = investments.length;
-            
-            // Calculate Impact ROI for all investments
-            const impactROIs = investments.map(inv => calculateImpactROI(inv));
-            const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
-            
-            let weights = new Array(n).fill(1/n);
-            const learningRate = 0.01;
-            const iterations = 3000;
-            
-            for (let iter = 0; iter < iterations; iter++) {
-                // Maximize Impact ROI: gradient is the Impact ROI values (we add to maximize)
-                const gradient = impactROIs.map(roi => roi / maxROI);
-                
-                for (let i = 0; i < n; i++) {
-                    // Add gradient to maximize Impact ROI
-                    weights[i] += learningRate * gradient[i];
-                    weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
-                }
-                
-                const sum = weights.reduce((a, b) => a + b, 0);
-                weights = weights.map(w => w / sum);
-                
-                // Ensure target return constraint
-                const currentReturn = calculatePortfolioReturn(weights);
-                if (Math.abs(currentReturn - targetReturn) > 0.5) {
-                    const returns = investments.map(inv => inv.impactValue || 0);
-                    const maxReturn = Math.max(...returns);
-                    const adjustment = (targetReturn - currentReturn) / targetReturn;
-                    
-                    for (let i = 0; i < n; i++) {
-                        weights[i] += learningRate * (returns[i] / maxReturn) * adjustment;
-                    }
-                    
-                    const newSum = weights.reduce((a, b) => a + b, 0);
-                    weights = weights.map(w => w / newSum);
-                }
-            }
-            
-            return weights;
-        }
+        
 
         function optimizeForTargetROI(targetROI, covMatrix) {
             const maxWeight = parseFloat(document.getElementById('maxWeight').value);
@@ -2098,13 +2053,19 @@ P90: ${impactVal > 0 ? calculateP90(impactVal, varianceVal).toFixed(2) + 'M' : '
         }
 
         function reoptimize() {
-            optimizePortfolio();
+            const minReturn = parseFloat(document.getElementById('minReturn').value);
+            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
+            const minWeight = parseFloat(document.getElementById('minWeight').value);
+            optimizePortfolio(minReturn, maxWeight, minWeight);
             setTimeout(() => generateEfficientFrontier(), 500);
         }
 
         window.addEventListener('load', function() {
             displayCorrelationMatrix();
-            optimizePortfolio();
+            const minReturn = parseFloat(document.getElementById('minReturn').value);
+            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
+            const minWeight = parseFloat(document.getElementById('minWeight').value);
+            optimizePortfolio(minReturn, maxWeight, minWeight);
             setTimeout(() => generateEfficientFrontier(), 1000);
         });
     </script>

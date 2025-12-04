@@ -959,11 +959,11 @@
                 id: 14,
                 name: "Renewable Energy Certificates Trading",
                 sector: "Carbon Markets",
-                amount: 8,
+                amount: 10,
                 description: "Platform for trading renewable energy certificates",
                 impactType: "Market Development",
                 potentialImpact: "Enable 5M tons CO2e/year market efficiency",
-                impactValue: 5.0,
+                impactValue: 3.0,
                 impactVariance: "±1M tons",
                 variance: 1.0,
                 correlations: "Med: All renewables"
@@ -1739,22 +1739,22 @@
             return variance;
         }
 
-        function optimizeForTargetROI(targetROI, covMatrix, minWeight=0,maxWeight=1) {
+        function optimizeForTargetROI(targetROI, covMatrix, minWeight = 0, maxWeight = 1) {
             const n = investments.length;
             
             // Calculate Impact ROI for all investments
             const impactROIs = investments.map(inv => calculateImpactROI(inv));
-            const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
+            const positiveROIs = impactROIs.filter(roi => roi > 0);
+            const maxROI = positiveROIs.length > 0 ? Math.max(...positiveROIs) : 1;
             
             // Start with equal weights
             let weights = new Array(n).fill(1/n);
             const varianceLearningRate = 0.02;
-            const roiLearningRate = 0.005;
+            const roiLearningRate = 0.01;
             const iterations = 5000;
             
             for (let iter = 0; iter < iterations; iter++) {
                 const currentROI = calculatePortfolioImpactROI(weights);
-                const currentVariance = calculatePortfolioVarianceValue(weights, covMatrix);
                 
                 // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
                 const varianceGradient = new Array(n).fill(0);
@@ -1770,6 +1770,7 @@
                 // Check ROI constraint
                 const roiError = targetROI - currentROI;
                 const roiConstraintActive = Math.abs(roiError) > 0.01;
+                const roiScale = Math.max(Math.abs(targetROI), 1e-6);
                 
                 // Update weights: minimize variance while maintaining ROI constraint
                 for (let i = 0; i < n; i++) {
@@ -1780,7 +1781,7 @@
                     if (roiConstraintActive) {
                         if (roiError > 0) {
                             // ROI is below target: increase weight on high-ROI investments
-                            weightChange += roiLearningRate * roiGradient[i] * (roiError / targetROI) * 5;
+                            weightChange += roiLearningRate * roiGradient[i] * (roiError / roiScale) * 5;
                         } else {
                             // ROI is above target: slightly reduce weight on high-ROI investments
                             weightChange -= roiLearningRate * roiGradient[i] * 0.5;

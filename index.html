@@ -717,6 +717,8 @@
                     </div>
                 </div>
                 
+                <div id="efficientFrontierContainer"></div>
+                
                 <h3 class="subsection-title">Portfolio Allocation Analysis</h3>
                 <p class="subsection-subtitle">Detailed Comparison of Investment Weights and Capital Allocation</p>
                 
@@ -740,10 +742,6 @@
                 <p class="subsection-subtitle">Individual Investment Characteristics with Portfolio-Level Optimization Impact</p>
                 
                 <div id="riskReturnAnalysis"></div>
-            </div>
-            
-            <div class="section">
-                <div id="efficientFrontierContainer"></div>
             </div>
             
             <div class="section">
@@ -1685,6 +1683,8 @@
             container.innerHTML = html;
         }
 
+
+        
         function generateEfficientFrontier() {
             const covMatrix = calculateCovarianceMatrix();
             const totalAmount = investments.reduce((sum, inv) => sum + inv.amount, 0);

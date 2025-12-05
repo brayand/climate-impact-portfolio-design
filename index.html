@@ -1815,7 +1815,7 @@
             const allRisks = [...points.map(p => p.risk), ...investments.map(inv => inv.variance || 0.1), origRisk, optRisk];
             const allImpactROIs = [...points.map(p => p.impactROI), ...investmentImpactROIs, origImpactROI, optImpactROI];
             
-            const minRisk = Math.min(...allRisks) * 0.9;
+            const minRisk = 0;
             const maxRisk = Math.max(...allRisks) * 1.1;
             const minImpactROI = 0;
             const maxImpactROI = Math.max(...allImpactROIs) * 1.1;

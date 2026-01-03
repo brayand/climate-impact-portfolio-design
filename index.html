@@ -1112,7 +1112,7 @@
             
             displayMetrics('originalMetrics', originalReturn, originalStdDev, originalSharpe, totalAmount);
             
-            displayMetricChanges(originalReturn, originalStdDev, originalSharpe, optimizedReturn, optimizedStdDev, optimizedSharpe);
+            displayMetricChanges(originalReturn, originalStdDev, originalSharpe, optimizedReturn, optimizedStdDev, optimizedSharpe, totalAmount);
             displayOptimizationSummary(originalReturn, originalStdDev, originalSharpe, 
                                       optimizedReturn, optimizedStdDev, optimizedSharpe);
             displayOriginalPortfolioTable(originalWeights, totalAmount);
@@ -1125,6 +1125,7 @@
             const container = document.getElementById(containerId);
             const p90Return = calculateP90(returns, variance);
             const p10Return = returns - 1.28 * variance;
+            const riskPerDollar = totalAmount > 0 ? variance / totalAmount : 0;
             
             container.innerHTML = `
                 <div class="metric">
@@ -1134,6 +1135,10 @@
                 <div class="metric">
                     <div class="metric-value">±${variance.toFixed(2)}M</div>
                     <div class="metric-label">Risk (Std Dev)</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-value">${riskPerDollar.toFixed(4)}</div>
+                    <div class="metric-label">Risk per Dollar</div>
                 </div>
                 <div class="metric">
                     <div class="metric-value">${p90Return.toFixed(2)}M</div>
@@ -1146,19 +1151,23 @@
             `;
         }
 
-        function displayMetricChanges(origReturn, origVar, origSharpe, optReturn, optVar, optSharpe) {
+        function displayMetricChanges(origReturn, origVar, origSharpe, optReturn, optVar, optSharpe, totalAmount) {
             const origP90 = calculateP90(origReturn, origVar);
             const optP90 = calculateP90(optReturn, optVar);
+            const origRiskPerDollar = totalAmount > 0 ? origVar / totalAmount : 0;
+            const optRiskPerDollar = totalAmount > 0 ? optVar / totalAmount : 0;
             
             const returnChange = optReturn - origReturn;
             const varChange = optVar - origVar;
             const p90Change = optP90 - origP90;
             const sharpeChange = optSharpe - origSharpe;
+            const riskPerDollarChange = optRiskPerDollar - origRiskPerDollar;
             
             const returnChangePct = ((returnChange / origReturn) * 100).toFixed(1);
             const varChangePct = ((varChange / origVar) * 100).toFixed(1);
             const p90ChangePct = ((p90Change / origP90) * 100).toFixed(1);
             const sharpeChangePct = ((sharpeChange / origSharpe) * 100).toFixed(1);
+            const riskPerDollarChangePct = origRiskPerDollar > 0 ? ((riskPerDollarChange / origRiskPerDollar) * 100).toFixed(1) : '0.0';
             
             const container = document.getElementById('metricChanges');
             if (!container) return;
@@ -1233,6 +1242,28 @@
                     </div>
                     
                     <div style="background: white; border: 1px solid #e0e0e0; padding: 30px;">
+                        <div style="font-size: 13px; color: #666; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Risk per Dollar</div>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
+                            <div style="font-family: 'Crimson Pro', serif; font-size: 24px; font-weight: 600; color: #666;">${origRiskPerDollar.toFixed(4)}</div>
+                            <div style="display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
+                                <svg width="60" height="20" viewBox="0 0 60 20" style="display: block; margin: 0 auto;">
+                                    <defs>
+                                        <marker id="arrowhead-riskperdollar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                                            <polygon points="0 0, 8 4, 0 8" fill="#2e7d32" />
+                                        </marker>
+                                    </defs>
+                                    <line x1="0" y1="10" x2="50" y2="10" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowhead-riskperdollar)"/>
+                                </svg>
+                            </div>
+                            <div style="font-family: 'Crimson Pro', serif; font-size: 24px; font-weight: 600; color: #1b5e20;">${optRiskPerDollar.toFixed(4)}</div>
+                        </div>
+                        <div style="font-size: 12px; color: ${riskPerDollarChange <= 0 ? '#2e7d32' : '#c62828'}; font-weight: 500; text-align: center;">
+                            ${riskPerDollarChange >= 0 ? '+' : ''}${riskPerDollarChange.toFixed(4)} (${riskPerDollarChangePct >= 0 ? '+' : ''}${riskPerDollarChangePct}%)
+                            ${riskPerDollarChange <= 0 ? '↓ Risk Reduction' : '↑ Risk Increase'}
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; border: 1px solid #e0e0e0; padding: 30px;">
                         <div style="font-size: 13px; color: #666; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Sharpe Ratio</div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
                             <div style="font-family: 'Crimson Pro', serif; font-size: 24px; font-weight: 600; color: #666;">${origSharpe.toFixed(2)}</div>
@@ -1302,6 +1333,7 @@
                         <th style="text-align: right;">Expected Impact</th>
                         <th style="text-align: right;">Risk</th>
                         <th style="text-align: right;">Impact ROI  (tons/$ invested)</th>
+                        <th style="text-align: right;">Risk per Dollar</th>
                         <th style="text-align: right;">Sharpe Ratio</th>
                         <th>Correlations</th>
                         <th style="text-align: center;">Original Weight</th>
@@ -1315,6 +1347,7 @@
                 const impactVal = inv.impactValue || 0;
                 const sharpe = impactVal / (inv.variance || 0.1);
                 const impactROI = calculateImpactROI(inv);
+                const riskPerDollar = inv.amount > 0 ? (inv.variance || 0.1) / inv.amount : 0;
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                 const roiColor = impactROI > 0.15 ? '#2e7d32' : impactROI > 0.10 ? '#1976d2' : impactROI > 0.05 ? '#f57c00' : '#c62828';
                 
@@ -1329,7 +1362,9 @@
                         <td style="text-align: right;">
                             <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
                         </td>
-                      
+                        <td style="text-align: right;">
+                            <span style="color: #666; font-weight: 600;">${riskPerDollar > 0 ? riskPerDollar.toFixed(4) : 'N/A'}</span>
+                        </td>
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
                         </td>
@@ -1472,6 +1507,7 @@
                         <th style="text-align: right;">Expected Impact</th>
                         <th style="text-align: right;">Risk</th>
                         <th style="text-align: right;">Impact ROI (tons/$ invested)</th>
+                        <th style="text-align: right;">Risk per Dollar</th>
                         <th style="text-align: right;">Sharpe Ratio</th>
                         <th style="text-align: right;">P90 Impact</th>
                         <th style="text-align: center;">Original Weight</th>
@@ -1488,6 +1524,7 @@
                 const change = ((optWeight - origWeight) / origWeight * 100);
                 const impactVal = inv.impactValue || 0;
                 const impactROI = calculateImpactROI(inv);
+                const riskPerDollar = inv.amount > 0 ? (inv.variance || 0.1) / inv.amount : 0;
                 const p90 = calculateP90(impactVal, inv.variance || 0.1);
                 const sharpe = impactVal / (inv.variance || 0.1);
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
@@ -1500,6 +1537,9 @@
                         <td style="text-align: right;">±${(inv.variance || 0.1).toFixed(2)}M</td>
                         <td style="text-align: right;">
                             <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <span style="color: #666; font-weight: 600;">${riskPerDollar > 0 ? riskPerDollar.toFixed(4) : 'N/A'}</span>
                         </td>
                         <td style="text-align: right;">
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
@@ -1703,7 +1743,6 @@
             
             for (let i = 0; i <= steps; i++) {
                 const targetROI = minTarget + (maxTarget - minTarget) * (i / steps);
-                
                 const weights = optimizeForTargetROI(targetROI, covMatrix);
                 const actualImpactROI = calculatePortfolioImpactROI(weights);
                 
@@ -1751,10 +1790,15 @@
             let weights = new Array(n).fill(1/n);
             const varianceLearningRate = 0.02;
             const roiLearningRate = 0.01;
-            const iterations = 5000;
+            const iterations = 50;
+
+            //console.log(targetROI,"targetROI");
             
             for (let iter = 0; iter < iterations; iter++) {
                 const currentROI = calculatePortfolioImpactROI(weights);
+                const currentVariance = calculatePortfolioVarianceValue(weights, covMatrix);
+                //console.log(currentROI,"currentROI");
+                //console.log(currentVariance,"currentVariance");
                 
                 // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
                 const varianceGradient = new Array(n).fill(0);
@@ -1789,7 +1833,9 @@
                     }
                     
                     weights[i] += weightChange;
-                    weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
+                    
+                    //weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
+                    
                 }
                 
                 // Normalize weights to sum to 1
@@ -1801,7 +1847,7 @@
                     weights = new Array(n).fill(1/n);
                 }
             }
-            
+            console.log(weights)
             return weights;
         }
 

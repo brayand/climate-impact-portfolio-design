@@ -983,7 +983,6 @@
             }
         ];
 
-
         const correlationMatrix = [
             [1.00, 0.75, 0.65, 0.25, 0.70, 0.35, 0.80, 0.55, 0.40, 0.30, 0.75, 0.85, 0.35, 0.50, 0.60],
             [0.75, 1.00, 0.55, 0.20, 0.50, 0.30, 0.80, 0.60, 0.35, 0.25, 0.65, 0.90, 0.40, 0.55, 0.65],
@@ -1013,11 +1012,27 @@
             for (let i = 0; i < n; i++) {
                 covMatrix[i] = [];
                 for (let j = 0; j < n; j++) {
-                    const varI = investments[i].variance || 0.1;
-                    const varJ = investments[j].variance || 0.1;
-                    covMatrix[i][j] = correlationMatrix[i][j] * varI * varJ;
+                    // Calculate variance from riskAsPercentOfImpact
+                    // riskAsPercentOfImpact = (variance / impactValue) * 100
+                    // Therefore: variance = (riskAsPercentOfImpact / 100) * impactValue
+                    const impactValI = investments[i].impactValue || 0;
+                    const impactValJ = investments[j].impactValue || 0;
+                    const varianceI = investments[i].variance || 0.1;
+                    const varianceJ = investments[j].variance || 0.1;
+                    
+                    // Calculate riskAsPercentOfImpact from existing variance
+                    const stdDevI = impactValI > 0 ? (varianceI / impactValI)  : 0;
+                    const stdDevJ = impactValJ > 0 ? (varianceJ / impactValJ)  : 0;
+                    
+                    // Recalculate variance using riskAsPercentOfImpact
+                    // This ensures variance scales proportionally with impactValue
+                    //const varI = (riskPercentI ) * impactValI;
+                    //const varJ = (riskPercentJ ) * impactValJ;
+                    
+                    covMatrix[i][j] = correlationMatrix[i][j] * stdDevI * stdDevJ;
                 }
             }
+            
             return covMatrix;
         }
 
@@ -1046,8 +1061,13 @@
             return (inv.impactValue || 0) / inv.amount;
         }
 
+        // Calculate and add impactROI to each investment
+        investments.forEach(inv => {
+            inv.impactROI = calculateImpactROI(inv);
+        });
+
         function calculatePortfolioImpactROI(weights) {
-            return weights.reduce((sum, w, i) => sum + w * calculateImpactROI(investments[i]), 0);
+            return weights.reduce((sum, w, i) => sum + w * (investments[i].impactROI || 0), 0);
         }
 
         function optimizePortfolio(minReturn, maxWeight, minWeight) {
@@ -1056,7 +1076,7 @@
             const n = investments.length;
             
             // Calculate Impact ROI for all investments
-            const impactROIs = investments.map(inv => calculateImpactROI(inv));
+            const impactROIs = investments.map(inv => inv.impactROI || 0);
             const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
             
             let weights = new Array(n).fill(1/n);
@@ -1350,7 +1370,7 @@
                 const impactVal = inv.impactValue || 0;
                 const varianceVal = inv.variance || 0.1;
                 const sharpe = impactVal / varianceVal;
-                const impactROI = calculateImpactROI(inv);
+                const impactROI = inv.impactROI || 0;
                 
                 const riskAsPercentOfImpact = impactVal > 0 ? (varianceVal / impactVal) * 100 : 0;
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
@@ -1531,7 +1551,7 @@
                 const change = ((optWeight - origWeight) / origWeight * 100);
                 const impactVal = inv.impactValue || 0;
                 const varianceVal = inv.variance || 0.1;
-                const impactROI = calculateImpactROI(inv);
+                const impactROI = inv.impactROI || 0;
                 
                 const riskAsPercentOfImpact = impactVal > 0 ? (varianceVal / impactVal) * 100 : 0;
                 const p90 = calculateP90(impactVal, varianceVal);
@@ -1745,7 +1765,7 @@
             const originalStdDev = calculatePortfolioStdDev(originalWeights, covMatrix);
             
             // Calculate impactROI range for target optimization
-            const impactROIs = investments.map(inv => calculateImpactROI(inv));
+            const impactROIs = investments.map(inv => inv.impactROI || 0);
             const minTarget = Math.min(...impactROIs.filter(roi => roi > 0)) * 0.5;
             const maxTarget = Math.max(...impactROIs.filter(roi => roi > 0)) * 1.2;
             const steps = 50; // Increased from 35 for smoother curve
@@ -1793,7 +1813,7 @@
             const n = investments.length;
             
             // Calculate Impact ROI for all investments
-            const impactROIs = investments.map(inv => calculateImpactROI(inv));
+            const impactROIs = investments.map(inv => inv.impactROI || 0);
             const positiveROIs = impactROIs.filter(roi => roi > 0);
             const maxROI = positiveROIs.length > 0 ? Math.max(...positiveROIs) : 1;
             
@@ -1803,13 +1823,12 @@
             const roiLearningRate = 0.01;
             const iterations = 50;
 
-            //console.log(targetROI,"targetROI");
+            
             
             for (let iter = 0; iter < iterations; iter++) {
                 const currentROI = calculatePortfolioImpactROI(weights);
                 const currentVariance = calculatePortfolioVarianceValue(weights, covMatrix);
-                //console.log(currentROI,"currentROI");
-                //console.log(currentVariance,"currentVariance");
+                
                 
                 // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
                 const varianceGradient = new Array(n).fill(0);
@@ -1858,7 +1877,7 @@
                     weights = new Array(n).fill(1/n);
                 }
             }
-            console.log(weights)
+            
             return weights;
         }
 
@@ -1866,7 +1885,7 @@
             const container = document.getElementById('efficientFrontierContainer');
             
             // Calculate impactROIs for individual investments
-            const investmentImpactROIs = investments.map(inv => calculateImpactROI(inv));
+            const investmentImpactROIs = investments.map(inv => inv.impactROI || 0);
             
             // Calculate bounds including individual investments
             const allRisks = [...points.map(p => p.risk), ...investments.map(inv => inv.variance || 0.1), origRisk, optRisk];
@@ -1959,7 +1978,7 @@
                         
                         <!-- Axis Labels -->
                         <text x="460" y="545" text-anchor="middle" font-size="15" font-weight="500" fill="#666" font-family="Inter">
-                            Portfolio Risk (Standard Deviation, M tons CO2e/year)
+                            Risk (Standard Deviation %)
                         </text>
                         <text x="45" y="298" text-anchor="middle" font-size="15" font-weight="500" fill="#666" font-family="Inter"
                               transform="rotate(-90, 45, 298)">
@@ -1978,7 +1997,9 @@
                         
                         <!-- Individual Investments -->
                         ${investments.map((inv, idx) => {
-                            const impactROI = calculateImpactROI(inv);
+                            console.log(inv);
+                            const impactROI = inv.impactROI || 0;
+                            console.log(impactROI,"impactROI");
                             const varianceVal = inv.variance || 0.1;
                             const invX = 100 + ((varianceVal - minRisk) / (maxRisk - minRisk)) * 720;
                             const invY = 496 - ((impactROI - minImpactROI) / (maxImpactROI - minImpactROI)) * 396;

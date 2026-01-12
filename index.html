@@ -1036,7 +1036,7 @@
             for (let i = 0; i < n; i++) {
                 covMatrix[i] = [];
                 for (let j = 0; j < n; j++) {
-                                        covMatrix[i][j] = correlationMatrix[i][j] * investments[i].relstddev * investments[j].relstddev;
+                covMatrix[i][j] = correlationMatrix[i][j] * investments[i].relstddev * investments[j].relstddev;
                 }
             }
             

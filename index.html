@@ -1136,12 +1136,12 @@
             displayRiskReturnAnalysis(originalWeights, optimizedWeights, covMatrix);
         }
 
-        function displayMetrics(containerId, returns, variance, sharpe, totalAmount) {
+        function displayMetrics(containerId, returns, stdDev, sharpe, totalAmount) {
             const container = document.getElementById(containerId);
-            const p90Return = calculateP90(returns, variance);
-            const p10Return = returns - 1.28 * variance;
-            const impactPerDollar = totalAmount > 0 ? returns / totalAmount : 0;
-            const riskAsPercentOfImpact = returns > 0 ? (variance / returns) * 100 : 0;
+            const p90Return = calculateP90(returns, stdDev);
+            const p10Return = returns - 1.28 * stdDev;
+            const impactPerDollar =  returns;
+            const riskAsPercentOfImpact = returns > 0 ? (stdDev / returns) * 100 : 0;
             
             container.innerHTML = `
                 <div class="metric">
@@ -1149,7 +1149,7 @@
                     <div class="metric-label">Expected Impact</div>
                 </div>
                 <div class="metric">
-                    <div class="metric-value">±${variance.toFixed(2)}M</div>
+                    <div class="metric-value">±${stdDev.toFixed(2)}M</div>
                     <div class="metric-label">Risk (Std Dev)</div>
                     <div style="font-size: 12px; color: #666; margin-top: 4px;">${riskAsPercentOfImpact.toFixed(1)}% of Impact</div>
                 </div>
@@ -1168,20 +1168,20 @@
             `;
         }
 
-        function displayMetricChanges(origReturn, origVar, origSharpe, optReturn, optVar, optSharpe, totalAmount) {
-            const origP90 = calculateP90(origReturn, origVar);
-            const optP90 = calculateP90(optReturn, optVar);
-            const origImpactPerDollar = totalAmount > 0 ? origReturn / totalAmount : 0;
-            const optImpactPerDollar = totalAmount > 0 ? optReturn / totalAmount : 0;
+        function displayMetricChanges(origReturn, origStdDev, origSharpe, optReturn, optStdDev, optSharpe, totalAmount) {
+            const origP90 = calculateP90(origReturn, origStdDev);
+            const optP90 = calculateP90(optReturn, optStdDev);
+            const origImpactPerDollar = origReturn;
+            const optImpactPerDollar = optReturn;
             
             const returnChange = optReturn - origReturn;
-            const varChange = optVar - origVar;
+            const stdDevChange = optStdDev - origStdDev;
             const p90Change = optP90 - origP90;
             const sharpeChange = optSharpe - origSharpe;
             const impactPerDollarChange = optImpactPerDollar - origImpactPerDollar;
             
             const returnChangePct = ((returnChange / origReturn) * 100).toFixed(1);
-            const varChangePct = ((varChange / origVar) * 100).toFixed(1);
+            const stdDevChangePct = ((stdDevChange / origStdDev) * 100).toFixed(1);
             const p90ChangePct = ((p90Change / origP90) * 100).toFixed(1);
             const sharpeChangePct = ((sharpeChange / origSharpe) * 100).toFixed(1);
             const impactPerDollarChangePct = origImpactPerDollar > 0 ? ((impactPerDollarChange / origImpactPerDollar) * 100).toFixed(1) : '0.0';
@@ -1218,7 +1218,7 @@
                     <div style="background: white; border: 1px solid #e0e0e0; padding: 30px;">
                         <div style="font-size: 13px; color: #666; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;">Risk (Std Dev)</div>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 10px;">
-                            <div style="font-family: 'Crimson Pro', serif; font-size: 24px; font-weight: 600; color: #666;">±${origVar.toFixed(2)}M</div>
+                            <div style="font-family: 'Crimson Pro', serif; font-size: 24px; font-weight: 600; color: #666;">±${origStdDev.toFixed(2)}M</div>
                             <div style="display: flex; align-items: center; justify-content: center; flex: 0 0 auto;">
                                 <svg width="60" height="20" viewBox="0 0 60 20" style="display: block; margin: 0 auto;">
                                     <defs>
@@ -1229,11 +1229,11 @@
                                     <line x1="0" y1="10" x2="50" y2="10" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrowhead-risk)"/>
                                 </svg>
                             </div>
-                            <div style="font-family: 'Crimson Pro', serif; font-size: 24px; font-weight: 600; color: #1b5e20;">±${optVar.toFixed(2)}M</div>
+                            <div style="font-family: 'Crimson Pro', serif; font-size: 24px; font-weight: 600; color: #1b5e20;">±${optStdDev.toFixed(2)}M</div>
                         </div>
-                        <div style="font-size: 12px; color: ${varChange <= 0 ? '#2e7d32' : '#c62828'}; font-weight: 500; text-align: center;">
-                            ${varChange >= 0 ? '+' : ''}${varChange.toFixed(2)}M (${varChangePct >= 0 ? '+' : ''}${varChangePct}%)
-                            ${varChange <= 0 ? '↓ Risk Reduction' : '↑ Risk Increase'}
+                        <div style="font-size: 12px; color: ${stdDevChange <= 0 ? '#2e7d32' : '#c62828'}; font-weight: 500; text-align: center;">
+                            ${stdDevChange >= 0 ? '+' : ''}${stdDevChange.toFixed(2)}M (${stdDevChangePct >= 0 ? '+' : ''}${stdDevChangePct}%)
+                            ${stdDevChange <= 0 ? '↓ Risk Reduction' : '↑ Risk Increase'}
                         </div>
                     </div>
                     
@@ -1305,13 +1305,13 @@
             `;
         }
 
-        function displayOptimizationSummary(origReturn, origVar, origSharpe, optReturn, optVar, optSharpe) {
+        function displayOptimizationSummary(origReturn, origStdDev, origSharpe, optReturn, optStdDev, optSharpe) {
             const returnChange = ((optReturn - origReturn) / origReturn * 100);
-            const varianceChange = ((optVar - origVar) / origVar * 100);
+            const varianceChange = ((optStdDev - origStdDev) / origStdDev * 100);
             const sharpeChange = ((optSharpe - origSharpe) / origSharpe * 100);
             
-            const origP90 = calculateP90(origReturn, origVar);
-            const optP90 = calculateP90(optReturn, optVar);
+            const origP90 = calculateP90(origReturn, origStdDev);
+            const optP90 = calculateP90(optReturn, optStdDev);
             
             document.getElementById('optimizationSummary').innerHTML = `
                 <p style="margin-bottom: 12px;">The optimization process achieved a <strong>${Math.abs(varianceChange).toFixed(1)}% reduction in portfolio risk</strong> while maintaining ${((optReturn/origReturn)*100).toFixed(1)}% of expected impact. The Sharpe ratio improved by <strong>${sharpeChange.toFixed(1)}%</strong>, demonstrating superior risk-adjusted performance.</p>
@@ -1330,7 +1330,7 @@
                         <div class="summary-label">Optimized P90</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-value">${((2.56*origVar - 2.56*optVar)/(2.56*origVar)*100).toFixed(1)}%</div>
+                        <div class="summary-value">${((2.56*origStdDev - 2.56*optStdDev)/(2.56*origStdDev)*100).toFixed(1)}%</div>
                         <div class="summary-label">Range Reduction</div>
                     </div>
                 </div>

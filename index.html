@@ -1066,6 +1066,20 @@
             inv.impactROI = calculateImpactROI(inv);
         });
 
+        // Calculate and add sharpeRatio to each investment
+        investments.forEach(inv => {
+            const impactVal = inv.impactValue || 0;
+            const varianceVal = inv.variance || 0.1;
+            inv.sharpeRatio = varianceVal > 0 ? impactVal / varianceVal : 0;
+        });
+
+        // Calculate and add riskAsPercentOfImpact to each investment
+        investments.forEach(inv => {
+            const impactVal = inv.impactValue || 0;
+            const varianceVal = inv.variance || 0.1;
+            inv.riskAsPercentOfImpact = impactVal > 0 ? (varianceVal / impactVal) * 100 : 0;
+        });
+
         function calculatePortfolioImpactROI(weights) {
             return weights.reduce((sum, w, i) => sum + w * (investments[i].impactROI || 0), 0);
         }
@@ -1359,7 +1373,7 @@
                         
                         <th style="text-align: right;">Sharpe Ratio</th>
                         <th>Correlations</th>
-                        <th style="text-align: center;">Original Weight</th>
+                        <th style="text-align: center;">Weight</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1369,10 +1383,9 @@
                 const origWeight = originalWeights[i];
                 const impactVal = inv.impactValue || 0;
                 const varianceVal = inv.variance || 0.1;
-                const sharpe = impactVal / varianceVal;
+                const sharpe = inv.sharpeRatio || 0;
                 const impactROI = inv.impactROI || 0;
-                
-                const riskAsPercentOfImpact = impactVal > 0 ? (varianceVal / impactVal) * 100 : 0;
+                const riskAsPercentOfImpact = inv.riskAsPercentOfImpact || 0;
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                 const roiColor = impactROI > 0.15 ? '#2e7d32' : impactROI > 0.10 ? '#1976d2' : impactROI > 0.05 ? '#f57c00' : '#c62828';
                 
@@ -1552,10 +1565,9 @@
                 const impactVal = inv.impactValue || 0;
                 const varianceVal = inv.variance || 0.1;
                 const impactROI = inv.impactROI || 0;
-                
-                const riskAsPercentOfImpact = impactVal > 0 ? (varianceVal / impactVal) * 100 : 0;
+                const riskAsPercentOfImpact = inv.riskAsPercentOfImpact || 0;
                 const p90 = calculateP90(impactVal, varianceVal);
-                const sharpe = impactVal / varianceVal;
+                const sharpe = inv.sharpeRatio || 0;
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                 const roiColor = impactROI > 0.15 ? '#2e7d32' : impactROI > 0.10 ? '#1976d2' : impactROI > 0.05 ? '#f57c00' : '#c62828';
                 
@@ -2003,7 +2015,7 @@
                             const varianceVal = inv.variance || 0.1;
                             const invX = 100 + ((varianceVal - minRisk) / (maxRisk - minRisk)) * 720;
                             const invY = 496 - ((impactROI - minImpactROI) / (maxImpactROI - minImpactROI)) * 396;
-                            const sharpe = impactROI / varianceVal;
+                            const sharpe = inv.sharpeRatio || 0;
                             const color = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                             const impactVal = inv.impactValue || 0;
                             
@@ -2146,7 +2158,7 @@ P90: ${impactVal > 0 ? calculateP90(impactVal, varianceVal).toFixed(2) + 'M' : '
                             ${investments.map((inv, idx) => {
                                 const impactVal = inv.impactValue || 0;
                                 const varianceVal = inv.variance || 0.1;
-                                const sharpe = impactVal / varianceVal;
+                                const sharpe = inv.sharpeRatio || 0;
                                 const color = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                                 return `
                                     <div style="display: flex; align-items: center; gap: 8px;">

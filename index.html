@@ -700,8 +700,8 @@
                 <div class="controls-panel">
                     <h3 class="controls-title">Optimization Parameters</h3>
                     <div class="control-group">
-                        <label class="control-label">Minimum Return Target (M tons CO2e/year)</label>
-                        <input type="number" id="minReturn" class="control-input" value="30" step="1">
+                        <label class="control-label">Minimum Impact ROI Target (tons/$ invested)</label>
+                        <input type="number" id="minReturn" class="control-input" value="0.10" step="0.01" min="0" max="1">
                     </div>
                     <div class="control-group">
                         <label class="control-label">Maximum Single Investment Weight</label>
@@ -1039,7 +1039,6 @@
                 covMatrix[i][j] = correlationMatrix[i][j] * investments[i].relstddev * investments[j].relstddev;
                 }
             }
-            
             return covMatrix;
         }
 
@@ -1056,14 +1055,12 @@
         }
 
         function calculatePortfolioReturn(weights) {
-            return weights.reduce((sum, w, i) => sum + w * (investments[i].impactValue || 0), 0);
+            return weights.reduce((sum, w, i) => sum + w * (investments[i].impactROI || 0), 0);
         }
 
         function calculateP90(mean, stdDev) {
             return mean + 1.28 * stdDev;
         }
-
-        
 
         function calculatePortfolioImpactROI(weights) {
             return weights.reduce((sum, w, i) => sum + w * (investments[i].impactROI || 0), 0);
@@ -1095,20 +1092,19 @@
                 const sum = weights.reduce((a, b) => a + b, 0);
                 weights = weights.map(w => w / sum);
                 
-                // Ensure minimum return constraint
-                const currentReturn = calculatePortfolioReturn(weights);
-                if (currentReturn < minReturn) {
-                    const returns = investments.map(inv => inv.impactValue || 0);
-                    const maxReturn = Math.max(...returns);
+                // Ensure minimum impact ROI constraint
+                const currentImpactROI = calculatePortfolioImpactROI(weights);
+                if (currentImpactROI < minReturn) {
+                    const impactROIs = investments.map(inv => inv.impactROI || 0);
+                    const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
                     for (let i = 0; i < n; i++) {
-                        weights[i] += learningRate * (returns[i] / maxReturn) * 0.1;
+                        weights[i] += learningRate * (impactROIs[i] / maxROI) * 0.1;
                     }
                     
                     const newSum = weights.reduce((a, b) => a + b, 0);
                     weights = weights.map(w => w / newSum);
                 }
             }
-            
             displayResults(weights);
         }
 

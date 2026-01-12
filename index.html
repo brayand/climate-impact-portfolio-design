@@ -701,7 +701,7 @@
                     <h3 class="controls-title">Optimization Parameters</h3>
                     <div class="control-group">
                         <label class="control-label">Minimum Impact ROI Target (tons/$ invested)</label>
-                        <input type="number" id="minReturn" class="control-input" value="0.10" step="0.01" min="0" max="1">
+                        <input type="number" id="minReturn" class="control-input" value="0.010" step="0.001" min="0" max="1">
                     </div>
                     <div class="control-group">
                         <label class="control-label">Maximum Single Investment Weight</label>
@@ -1062,10 +1062,6 @@
             return mean + 1.28 * stdDev;
         }
 
-        function calculatePortfolioImpactROI(weights) {
-            return weights.reduce((sum, w, i) => sum + w * (investments[i].impactROI || 0), 0);
-        }
-
         function optimizePortfolio(minReturn, maxWeight, minWeight) {
             
             
@@ -1093,7 +1089,7 @@
                 weights = weights.map(w => w / sum);
                 
                 // Ensure minimum impact ROI constraint
-                const currentImpactROI = calculatePortfolioImpactROI(weights);
+                const currentImpactROI = calculatePortfolioReturn(weights);
                 if (currentImpactROI < minReturn) {
                     const impactROIs = investments.map(inv => inv.impactROI || 0);
                     const maxROI = Math.max(...impactROIs.filter(roi => roi > 0));
@@ -1748,14 +1744,16 @@
             container.innerHTML = html;
         }
 
-
-        
         function generateEfficientFrontier() {
             const covMatrix = calculateCovarianceMatrix();
             const totalAmount = investments.reduce((sum, inv) => sum + inv.amount, 0);
             const originalWeights = investments.map(inv => inv.amount / totalAmount);
-            const originalImpactROI = calculatePortfolioImpactROI(originalWeights);
+            const originalImpactROI = calculatePortfolioReturn(originalWeights);
             const originalStdDev = calculatePortfolioStdDev(originalWeights, covMatrix);
+            
+            // Get weight constraints from UI
+            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
+            const minWeight = parseFloat(document.getElementById('minWeight').value);
             
             // Calculate impactROI range for target optimization
             const impactROIs = investments.map(inv => inv.impactROI || 0);
@@ -1767,8 +1765,8 @@
             
             for (let i = 0; i <= steps; i++) {
                 const targetROI = minTarget + (maxTarget - minTarget) * (i / steps);
-                const weights = optimizeForTargetROI(targetROI, covMatrix);
-                const actualImpactROI = calculatePortfolioImpactROI(weights);
+                const weights = optimizeForTargetROI(targetROI, covMatrix, minWeight, maxWeight);
+                const actualImpactROI = calculatePortfolioReturn(weights);
                 
                 const stdDev = calculatePortfolioStdDev(weights, covMatrix);
                 
@@ -1782,15 +1780,13 @@
             }
             
             const optimizedImpactROI = currentOptimizedWeights ? 
-                calculatePortfolioImpactROI(currentOptimizedWeights) : originalImpactROI;
+                calculatePortfolioReturn(currentOptimizedWeights) : originalImpactROI;
             
             displayEfficientFrontier(points, originalImpactROI, originalStdDev, 
                                     optimizedImpactROI, currentOptimizedRisk);
         }
 
-        
-
-        function optimizeForTargetROI(targetROI, covMatrix, minWeight = -10, maxWeight = 20) {
+        function optimizeForTargetROI(targetROI, covMatrix, minWeight, maxWeight) {
             const n = investments.length;
             
             // Calculate Impact ROI for all investments
@@ -1798,16 +1794,37 @@
             const positiveROIs = impactROIs.filter(roi => roi > 0);
             const maxROI = positiveROIs.length > 0 ? Math.max(...positiveROIs) : 1;
             
-            // Start with equal weights
-            let weights = new Array(n).fill(1/n);
-            const varianceLearningRate = 0.02;
-            const roiLearningRate = 0.01;
-            const iterations = 50;
-
+            // Better initialization: start with weights proportional to ROI (normalized to sum to 1)
+            // This gives a better starting point closer to the target
+            let weights = new Array(n).fill(0);
+            let initSum = 0;
+            for (let i = 0; i < n; i++) {
+                weights[i] = Math.max(0, impactROIs[i] / maxROI);
+                initSum += weights[i];
+            }
+            if (initSum > 0) {
+                weights = weights.map(w => w / initSum);
+            } else {
+                weights = new Array(n).fill(1/n);
+            }
             
+            // Apply constraints to initial weights
+            for (let i = 0; i < n; i++) {
+                weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
+            }
+            const initSum2 = weights.reduce((a, b) => a + b, 0);
+            if (initSum2 > 0) {
+                weights = weights.map(w => w / initSum2);
+            }
+            
+            const varianceLearningRate = 0.01;
+            const roiLearningRate = 0.005;
+            const iterations = 300;
+            const tolerance = 0.0001;
             
             for (let iter = 0; iter < iterations; iter++) {
-                const currentROI = calculatePortfolioImpactROI(weights);
+                const currentROI = calculatePortfolioReturn(weights);
+                const currentVariance = calculatePortfolioStdDev(weights, covMatrix) ** 2;
                 
                 // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
                 const varianceGradient = new Array(n).fill(0);
@@ -1822,41 +1839,54 @@
                 
                 // Check ROI constraint
                 const roiError = targetROI - currentROI;
-                const roiConstraintActive = Math.abs(roiError) > 0.01;
-                const roiScale = Math.max(Math.abs(targetROI), 1e-6);
+                const roiErrorAbs = Math.abs(roiError);
+                
+                // Adaptive learning rate based on ROI error
+                const adaptiveROILR = roiLearningRate * (1 + Math.min(roiErrorAbs / targetROI, 2));
                 
                 // Update weights: minimize variance while maintaining ROI constraint
+                const newWeights = new Array(n).fill(0);
                 for (let i = 0; i < n; i++) {
                     // Move in direction that reduces variance (negative gradient)
                     let weightChange = -varianceLearningRate * varianceGradient[i];
                     
-                    // If ROI constraint is violated, adjust to meet it
-                    if (roiConstraintActive) {
+                    // If ROI constraint is violated, adjust to meet it using Lagrange-like approach
+                    if (roiErrorAbs > tolerance) {
                         if (roiError > 0) {
                             // ROI is below target: increase weight on high-ROI investments
-                            weightChange += roiLearningRate * roiGradient[i] * (roiError / roiScale) * 5;
+                            weightChange += adaptiveROILR * roiGradient[i] * (roiError / targetROI) * 3;
                         } else {
-                            // ROI is above target: slightly reduce weight on high-ROI investments
-                            weightChange -= roiLearningRate * roiGradient[i] * 0.5;
+                            // ROI is above target: reduce weight on high-ROI investments
+                            weightChange -= adaptiveROILR * roiGradient[i] * 2;
                         }
                     }
                     
-                    weights[i] += weightChange;
-                    
-                    //weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
-                    
+                    newWeights[i] = weights[i] + weightChange;
                 }
                 
-                // Normalize weights to sum to 1
-                const sum = weights.reduce((a, b) => a + b, 0);
+                // Apply weight constraints
+                for (let i = 0; i < n; i++) {
+                    newWeights[i] = Math.max(minWeight, Math.min(maxWeight, newWeights[i]));
+                }
+                
+                // Normalize to sum to 1, but preserve relative ratios
+                const sum = newWeights.reduce((a, b) => a + b, 0);
                 if (sum > 0) {
-                    weights = weights.map(w => w / sum);
+                    weights = newWeights.map(w => w / sum);
                 } else {
-                    // Reset if sum becomes zero (shouldn't happen, but safety check)
+                    // If sum is zero, reset to equal weights
                     weights = new Array(n).fill(1/n);
                 }
+                
+                // Early convergence check
+                if (iter > 50 && roiErrorAbs < tolerance) {
+                    // Check if variance is also stable
+                    const newVariance = calculatePortfolioStdDev(weights, covMatrix) ** 2;
+                    if (Math.abs(newVariance - currentVariance) < tolerance * currentVariance) {
+                        break;
+                    }
+                }
             }
-            
             return weights;
         }
 
@@ -1865,11 +1895,14 @@
             
             // Calculate impactROIs for individual investments
             const investmentImpactROIs = investments.map(inv => inv.impactROI || 0);
-            
+            //console.log("investments:",investmentImpactROIs);
+            //console.log("optPoints",points);
+            //console.log("investments.relstddev:",investments.map(inv => inv.relstddev));
             // Calculate bounds including individual investments
             const allRisks = [...points.map(p => p.risk), ...investments.map(inv => inv.relstddev || 0.1), origRisk, optRisk];
             const allImpactROIs = [...points.map(p => p.impactROI), ...investmentImpactROIs, origImpactROI, optImpactROI];
-            
+            //console.log("allRisks:",allRisks);
+            //console.log("allImpactROIs:",allImpactROIs);
             const minRisk = 0;
             const maxRisk = Math.max(...allRisks) * 1.1;
             const minImpactROI = 0;
@@ -1976,7 +2009,6 @@
                         
                         <!-- Individual Investments -->
                         ${investments.map((inv, idx) => {
-                            console.log(inv);
                             const impactROI = inv.impactROI || 0;
                             const stdDevVal = inv.stddev || 0.1;
                             const relStdDevVal = inv.relstddev || 0.1;

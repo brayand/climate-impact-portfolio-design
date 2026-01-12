@@ -1790,18 +1790,6 @@
 
         
 
-        function calculatePortfolioVarianceValue(weights, covMatrix) {
-            // Returns variance (not standard deviation) for optimization
-            const n = weights.length;
-            let variance = 0;
-            for (let i = 0; i < n; i++) {
-                for (let j = 0; j < n; j++) {
-                    variance += weights[i] * weights[j] * covMatrix[i][j];
-                }
-            }
-            return variance;
-        }
-
         function optimizeForTargetROI(targetROI, covMatrix, minWeight = -10, maxWeight = 20) {
             const n = investments.length;
             
@@ -1820,8 +1808,6 @@
             
             for (let iter = 0; iter < iterations; iter++) {
                 const currentROI = calculatePortfolioImpactROI(weights);
-                const currentVariance = calculatePortfolioVarianceValue(weights, covMatrix);
-                
                 
                 // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
                 const varianceGradient = new Array(n).fill(0);

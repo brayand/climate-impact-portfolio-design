@@ -1036,17 +1036,7 @@
             for (let i = 0; i < n; i++) {
                 covMatrix[i] = [];
                 for (let j = 0; j < n; j++) {
-                    // Use relstddev (stddev / impactValue) for covariance calculation
-                    const impactValI = investments[i].impactValue || 0;
-                    const impactValJ = investments[j].impactValue || 0;
-                    const stdDevI = investments[i].relstddev || 0;
-                    const stdDevJ = investments[j].relstddev || 0;
-                    
-                    // Use relstddev to ensure risk scales proportionally with impactValue
-                    //const varI = (riskPercentI ) * impactValI;
-                    //const varJ = (riskPercentJ ) * impactValJ;
-                    
-                    covMatrix[i][j] = correlationMatrix[i][j] * stdDevI * stdDevJ;
+                                        covMatrix[i][j] = correlationMatrix[i][j] * investments[i].relstddev * investments[j].relstddev;
                 }
             }
             

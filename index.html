@@ -1018,8 +1018,8 @@
         // Calculate and add sharpeRatio to each investment
         investments.forEach(inv => {
             const impactVal = inv.impactValue || 0;
-            const varianceVal = inv.stddev || 0.1;
-            inv.sharpeRatio = varianceVal > 0 ? impactVal / varianceVal : 0;
+            const stdDevVal = inv.stddev || 0.1;
+            inv.sharpeRatio = stdDevVal > 0 ? impactVal / stdDevVal : 0;
         });
 
         // Calculate and add relstddev to each investment (stddev / impactValue)
@@ -1377,7 +1377,7 @@
             investments.forEach((inv, i) => {
                 const origWeight = originalWeights[i];
                 const impactVal = inv.impactValue || 0;
-                const varianceVal = inv.stddev || 0.1;
+                const stdDevVal = inv.stddev || 0.1;
                 const sharpe = inv.sharpeRatio || 0;
                 const impactROI = inv.impactROI || 0;
                 const relstddev = inv.relstddev || 0;
@@ -1395,7 +1395,7 @@
                             <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
                         </td>
                         <td style="text-align: right;">
-                            ±${varianceVal.toFixed(2)}M<br>
+                            ±${stdDevVal.toFixed(2)}M<br>
                             <span style="font-size: 11px; color: #666;">(${relstddev > 0 ? (relstddev * 100).toFixed(1) + '%)' : 'N/A'}</span>
                         </td>
                         
@@ -1558,10 +1558,10 @@
                 const optWeight = optimizedWeights[i];
                 const change = ((optWeight - origWeight) / origWeight * 100);
                 const impactVal = inv.impactValue || 0;
-                const varianceVal = inv.stddev || 0.1;
+                const stdDevVal = inv.stddev || 0.1;
                 const impactROI = inv.impactROI || 0;
                 const relstddev = inv.relstddev || 0;
-                const p90 = calculateP90(impactVal, varianceVal);
+                const p90 = calculateP90(impactVal, stdDevVal);
                 const sharpe = inv.sharpeRatio || 0;
                 const sharpeColor = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                 const roiColor = impactROI > 0.15 ? '#2e7d32' : impactROI > 0.10 ? '#1976d2' : impactROI > 0.05 ? '#f57c00' : '#c62828';
@@ -1574,7 +1574,7 @@
                             <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
                         </td>
                         <td style="text-align: right;">
-                            ±${varianceVal.toFixed(2)}M<br>
+                            ±${stdDevVal.toFixed(2)}M<br>
                             <span style="font-size: 11px; color: #666;">(${relstddev > 0 ? (relstddev * 100).toFixed(1) + '%)' : 'N/A'}</span>
                         </td>
                         
@@ -1895,7 +1895,7 @@
             const investmentImpactROIs = investments.map(inv => inv.impactROI || 0);
             
             // Calculate bounds including individual investments
-            const allRisks = [...points.map(p => p.risk), ...investments.map(inv => inv.stddev || 0.1), origRisk, optRisk];
+            const allRisks = [...points.map(p => p.risk), ...investments.map(inv => inv.relstddev || 0.1), origRisk, optRisk];
             const allImpactROIs = [...points.map(p => p.impactROI), ...investmentImpactROIs, origImpactROI, optImpactROI];
             
             const minRisk = 0;
@@ -2006,8 +2006,9 @@
                         ${investments.map((inv, idx) => {
                             console.log(inv);
                             const impactROI = inv.impactROI || 0;
-                            const varianceVal = inv.stddev || 0.1;
-                            const invX = 100 + ((varianceVal - minRisk) / (maxRisk - minRisk)) * 720;
+                            const stdDevVal = inv.stddev || 0.1;
+                            const relStdDevVal = inv.relstddev || 0.1;
+                            const invX = 100 + ((relStdDevVal - minRisk) / (maxRisk - minRisk)) * 720;
                             const invY = 496 - ((impactROI - minImpactROI) / (maxImpactROI - minImpactROI)) * 396;
                             const sharpe = inv.sharpeRatio || 0;
                             const color = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
@@ -2018,10 +2019,10 @@
                                     <circle cx="${invX}" cy="${invY}" r="8" fill="${color}" opacity="0.8" stroke="white" stroke-width="2">
                                         <title>${inv.name}
 Impact ROI: ${impactROI > 0 ? impactROI.toFixed(3) + ' M tons/$' : 'N/A'}
-Risk: ±${varianceVal}M tons
+Risk: ±${stdDevVal}M tons
 Sharpe: ${sharpe.toFixed(2)}
 Impact: ${impactVal > 0 ? impactVal + 'M tons/year' : 'N/A'}
-P90: ${impactVal > 0 ? calculateP90(impactVal, varianceVal).toFixed(2) + 'M' : 'N/A'}</title>
+P90: ${impactVal > 0 ? calculateP90(impactVal, stdDevVal).toFixed(2) + 'M' : 'N/A'}</title>
                                     </circle>
                                     <text x="${invX}" y="${invY + 2}" text-anchor="middle" font-size="11" fill="white" font-weight="700" font-family="Inter">
                                         ${idx + 1}
@@ -2073,7 +2074,7 @@ P90: ${impactVal > 0 ? calculateP90(impactVal, varianceVal).toFixed(2) + 'M' : '
                         ${Array.from({length: 11}, (_, i) => {
                             const risk = minRisk + (maxRisk - minRisk) * (i / 10);
                             return `<text x="${100 + i * 80}" y="520" text-anchor="middle" font-size="11" fill="#666" font-family="Inter">
-                                ${risk.toFixed(1)}
+                                ${risk.toFixed(4)}
                             </text>`;
                         }).join('')}
                         
@@ -2151,7 +2152,8 @@ P90: ${impactVal > 0 ? calculateP90(impactVal, varianceVal).toFixed(2) + 'M' : '
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 20px; font-size: 11px;">
                             ${investments.map((inv, idx) => {
                                 const impactVal = inv.impactValue || 0;
-                                const varianceVal = inv.stddev || 0.1;
+                                const stdDevVal = inv.stddev || 0.1;
+                                const relStdDevVal = inv.relstddev || 0.1;
                                 const sharpe = inv.sharpeRatio || 0;
                                 const color = sharpe > 10 ? '#2e7d32' : sharpe > 7 ? '#1976d2' : sharpe > 5 ? '#f57c00' : '#c62828';
                                 return `

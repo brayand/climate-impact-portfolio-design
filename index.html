@@ -705,7 +705,7 @@
                     </div>
                     <div class="control-group">
                         <label class="control-label">Maximum Single Investment Weight</label>
-                        <input type="number" id="maxWeight" class="control-input" value="0.15" step="0.01" min="0.05" max="0.5">
+                        <input type="number" id="maxWeight" class="control-input" value="0.5" step="0.01" min="0.05" max="0.5">
                     </div>
                     <div class="control-group">
                         <label class="control-label">Minimum Single Investment Weight</label>
@@ -1752,22 +1752,20 @@
             const originalStdDev = calculatePortfolioStdDev(originalWeights, covMatrix);
             
             // Get weight constraints from UI
-            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
-            const minWeight = parseFloat(document.getElementById('minWeight').value);
+            //const maxWeight = parseFloat(document.getElementById('maxWeight').value);
+            //const minWeight = parseFloat(document.getElementById('minWeight').value);
             
             // Calculate impactROI range for target optimization
             const impactROIs = investments.map(inv => inv.impactROI || 0);
             const minTarget = Math.min(...impactROIs.filter(roi => roi > 0)) * 0.5;
             const maxTarget = Math.max(...impactROIs.filter(roi => roi > 0)) * 1.2;
             const steps = 50; // Increased from 35 for smoother curve
-            
             const points = [];
             
             for (let i = 0; i <= steps; i++) {
                 const targetROI = minTarget + (maxTarget - minTarget) * (i / steps);
-                const weights = optimizeForTargetROI(targetROI, covMatrix, minWeight, maxWeight);
+                const weights = optimizeForTargetROI(targetROI, covMatrix);
                 const actualImpactROI = calculatePortfolioReturn(weights);
-                
                 const stdDev = calculatePortfolioStdDev(weights, covMatrix);
                 
                 const sharpe = actualImpactROI / stdDev;
@@ -1786,106 +1784,66 @@
                                     optimizedImpactROI, currentOptimizedRisk);
         }
 
-        function optimizeForTargetROI(targetROI, covMatrix, minWeight, maxWeight) {
+        function optimizeForTargetROI(targetROI, covMatrix) {
             const n = investments.length;
-            
-            // Calculate Impact ROI for all investments
             const impactROIs = investments.map(inv => inv.impactROI || 0);
-            const positiveROIs = impactROIs.filter(roi => roi > 0);
-            const maxROI = positiveROIs.length > 0 ? Math.max(...positiveROIs) : 1;
+            const maxROI = Math.max(...impactROIs.filter(roi => roi > 0), 1);
+            const roiGradient = impactROIs.map(roi => roi / maxROI);
             
-            // Better initialization: start with weights proportional to ROI (normalized to sum to 1)
-            // This gives a better starting point closer to the target
-            let weights = new Array(n).fill(0);
-            let initSum = 0;
+            // Initialize weights proportional to ROI
+            let sum = 0;
+            let weights = new Array(n);
             for (let i = 0; i < n; i++) {
                 weights[i] = Math.max(0, impactROIs[i] / maxROI);
-                initSum += weights[i];
+                sum += weights[i];
             }
-            if (initSum > 0) {
-                weights = weights.map(w => w / initSum);
+            if (sum > 0) {
+                for (let i = 0; i < n; i++) weights[i] /= sum;
             } else {
-                weights = new Array(n).fill(1/n);
+                weights.fill(1 / n);
             }
             
-            // Apply constraints to initial weights
-            for (let i = 0; i < n; i++) {
-                weights[i] = Math.max(minWeight, Math.min(maxWeight, weights[i]));
-            }
-            const initSum2 = weights.reduce((a, b) => a + b, 0);
-            if (initSum2 > 0) {
-                weights = weights.map(w => w / initSum2);
-            }
-            
-            const varianceLearningRate = 0.01;
-            const roiLearningRate = 0.005;
-            const iterations = 300;
-            const tolerance = 0.0001;
+            const varianceLR = 0.015;
+            const roiLR = 0.03;
+            const iterations = 80;
+            const tolerance = 0.005;
             
             for (let iter = 0; iter < iterations; iter++) {
                 const currentROI = calculatePortfolioReturn(weights);
-                const currentVariance = calculatePortfolioStdDev(weights, covMatrix) ** 2;
-                
-                // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
-                const varianceGradient = new Array(n).fill(0);
-                for (let i = 0; i < n; i++) {
-                    for (let j = 0; j < n; j++) {
-                        varianceGradient[i] += 2 * weights[j] * covMatrix[i][j];
-                    }
-                }
-                
-                // Calculate ROI gradient (normalized)
-                const roiGradient = impactROIs.map(roi => roi / maxROI);
-                
-                // Check ROI constraint
                 const roiError = targetROI - currentROI;
                 const roiErrorAbs = Math.abs(roiError);
                 
-                // Adaptive learning rate based on ROI error
-                const adaptiveROILR = roiLearningRate * (1 + Math.min(roiErrorAbs / targetROI, 2));
-                
-                // Update weights: minimize variance while maintaining ROI constraint
-                const newWeights = new Array(n).fill(0);
+                // Calculate variance gradient: ∂(variance)/∂wᵢ = 2 * Σⱼ wⱼ * covMatrix[i][j]
+                const varianceGradient = new Array(n);
                 for (let i = 0; i < n; i++) {
-                    // Move in direction that reduces variance (negative gradient)
-                    let weightChange = -varianceLearningRate * varianceGradient[i];
-                    
-                    // If ROI constraint is violated, adjust to meet it using Lagrange-like approach
+                    let grad = 0;
+                    for (let j = 0; j < n; j++) {
+                        grad += weights[j] * covMatrix[i][j];
+                    }
+                    varianceGradient[i] = 2 * grad;
+                }
+                
+                // Update weights: minimize variance with ROI constraint
+                const newWeights = new Array(n);
+                for (let i = 0; i < n; i++) {
+                    let change = -varianceLR * varianceGradient[i];
                     if (roiErrorAbs > tolerance) {
-                        if (roiError > 0) {
-                            // ROI is below target: increase weight on high-ROI investments
-                            weightChange += adaptiveROILR * roiGradient[i] * (roiError / targetROI) * 3;
-                        } else {
-                            // ROI is above target: reduce weight on high-ROI investments
-                            weightChange -= adaptiveROILR * roiGradient[i] * 2;
-                        }
+                        change += roiLR * roiGradient[i] * (roiError > 0 ? 2 : -1);
                     }
-                    
-                    newWeights[i] = weights[i] + weightChange;
+                    newWeights[i] = weights[i] + change;
                 }
                 
-                // Apply weight constraints
-                for (let i = 0; i < n; i++) {
-                    newWeights[i] = Math.max(minWeight, Math.min(maxWeight, newWeights[i]));
-                }
-                
-                // Normalize to sum to 1, but preserve relative ratios
-                const sum = newWeights.reduce((a, b) => a + b, 0);
+                // Normalize to sum to 1
+                sum = 0;
+                for (let i = 0; i < n; i++) sum += newWeights[i];
                 if (sum > 0) {
-                    weights = newWeights.map(w => w / sum);
+                    for (let i = 0; i < n; i++) weights[i] = newWeights[i] / sum;
                 } else {
-                    // If sum is zero, reset to equal weights
-                    weights = new Array(n).fill(1/n);
+                    weights.fill(1 / n);
                 }
                 
-                // Early convergence check
-                if (iter > 50 && roiErrorAbs < tolerance) {
-                    // Check if variance is also stable
-                    const newVariance = calculatePortfolioStdDev(weights, covMatrix) ** 2;
-                    if (Math.abs(newVariance - currentVariance) < tolerance * currentVariance) {
-                        break;
-                    }
-                }
+                // Early convergence
+                if (iter > 30 && roiErrorAbs < tolerance) break;
             }
             return weights;
         }
@@ -2183,7 +2141,7 @@ P90: ${impactVal > 0 ? calculateP90(impactVal, stdDevVal).toFixed(2) + 'M' : 'N/
             const maxWeight = parseFloat(document.getElementById('maxWeight').value);
             const minWeight = parseFloat(document.getElementById('minWeight').value);
             optimizePortfolio(minReturn, maxWeight, minWeight);
-            setTimeout(() => generateEfficientFrontier(), 500);
+            setTimeout(() => generateEfficientFrontier(), 1000);
         }
 
         window.addEventListener('load', function() {

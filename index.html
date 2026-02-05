@@ -1771,6 +1771,7 @@
                 const sharpe = actualImpactROI / stdDev;
                 
                 points.push({
+                    targetROI:targetROI, 
                     impactROI: actualImpactROI,
                     risk: stdDev,
                     sharpe: sharpe
@@ -1787,26 +1788,14 @@
         function optimizeForTargetROI(targetROI, covMatrix) {
             const n = investments.length;
             const impactROIs = investments.map(inv => inv.impactROI || 0);
-            const maxROI = Math.max(...impactROIs.filter(roi => roi > 0), 1);
-            const roiGradient = impactROIs.map(roi => roi / maxROI);
             
-            // Initialize weights proportional to ROI
-            let sum = 0;
-            let weights = new Array(n);
-            for (let i = 0; i < n; i++) {
-                weights[i] = Math.max(0, impactROIs[i] / maxROI);
-                sum += weights[i];
-            }
-            if (sum > 0) {
-                for (let i = 0; i < n; i++) weights[i] /= sum;
-            } else {
-                weights.fill(1 / n);
-            }
+            // Initialize with equal weights
+            let weights = new Array(n).fill(1 / n);
             
-            const varianceLR = 0.015;
-            const roiLR = 0.03;
-            const iterations = 80;
-            const tolerance = 0.005;
+            const varianceLR = 0.01;
+            const constraintLR = 0.05;
+            const iterations = 200;
+            const tolerance = 0.0001;
             
             for (let iter = 0; iter < iterations; iter++) {
                 const currentROI = calculatePortfolioReturn(weights);
@@ -1823,18 +1812,36 @@
                     varianceGradient[i] = 2 * grad;
                 }
                 
-                // Update weights: minimize variance with ROI constraint
+                // Calculate ROI gradient: ∂(ROI)/∂wᵢ = impactROIs[i]
+                const roiGradient = impactROIs;
+                
+                // Projected gradient descent: minimize variance subject to ROI constraint
+                // Use Lagrange multiplier approach: minimize variance - λ * (ROI - targetROI)
                 const newWeights = new Array(n);
-                for (let i = 0; i < n; i++) {
-                    let change = -varianceLR * varianceGradient[i];
-                    if (roiErrorAbs > tolerance) {
-                        change += roiLR * roiGradient[i] * (roiError > 0 ? 2 : -1);
+                
+                // Calculate Lagrange multiplier estimate
+                // If ROI constraint is violated, adjust weights to satisfy it
+                if (roiErrorAbs > tolerance) {
+                    // Calculate how much we need to adjust each weight to meet ROI constraint
+                    const roiGradientNorm = Math.sqrt(roiGradient.reduce((sum, g) => sum + g * g, 0));
+                    const lambda = roiError / (roiGradientNorm * roiGradientNorm + 1e-10);
+                    
+                    for (let i = 0; i < n; i++) {
+                        // Minimize variance (negative gradient) while satisfying ROI constraint
+                        let change = -varianceLR * varianceGradient[i];
+                        // Add constraint correction
+                        change += constraintLR * lambda * roiGradient[i];
+                        newWeights[i] = weights[i] + change;
                     }
-                    newWeights[i] = weights[i] + change;
+                } else {
+                    // ROI constraint is satisfied, just minimize variance
+                    for (let i = 0; i < n; i++) {
+                        newWeights[i] = weights[i] - varianceLR * varianceGradient[i];
+                    }
                 }
                 
-                // Normalize to sum to 1
-                sum = 0;
+                // Normalize to sum to 1 (preserves constraint satisfaction approximately)
+                let sum = 0;
                 for (let i = 0; i < n; i++) sum += newWeights[i];
                 if (sum > 0) {
                     for (let i = 0; i < n; i++) weights[i] = newWeights[i] / sum;
@@ -1842,9 +1849,36 @@
                     weights.fill(1 / n);
                 }
                 
-                // Early convergence
-                if (iter > 30 && roiErrorAbs < tolerance) break;
+                // Re-check ROI after normalization and apply correction if needed
+                const newROI = calculatePortfolioReturn(weights);
+                const newROIError = targetROI - newROI;
+                if (Math.abs(newROIError) > tolerance && iter % 5 === 0) {
+                    // Periodically correct for ROI drift from normalization
+                    const correction = newROIError / (Math.max(...impactROIs) + 1e-10);
+                    for (let i = 0; i < n; i++) {
+                        weights[i] += constraintLR * correction * (impactROIs[i] / Math.max(...impactROIs));
+                    }
+                    // Renormalize
+                    sum = 0;
+                    for (let i = 0; i < n; i++) sum += weights[i];
+                    if (sum > 0) {
+                        for (let i = 0; i < n; i++) weights[i] /= sum;
+                    }
+                }
+                
+                // Early convergence check
+                if (iter > 50 && roiErrorAbs < tolerance) {
+                    const currentVariance = calculatePortfolioStdDev(weights, covMatrix) ** 2;
+                    // Check if variance is stable (converged)
+                    if (iter > 100) {
+                        const prevVariance = calculatePortfolioStdDev(weights, covMatrix) ** 2;
+                        if (Math.abs(currentVariance - prevVariance) < tolerance * currentVariance) {
+                            break;
+                        }
+                    }
+                }
             }
+            
             return weights;
         }
 

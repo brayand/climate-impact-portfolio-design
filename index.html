@@ -1339,6 +1339,7 @@
             let html = `
                 <thead>
                     <tr>
+                        <th style="text-align: center;">#</th>
                         <th>Investment Name</th>
                         <th>Description</th>
                         <th style="text-align: right;">Amount</th>
@@ -1368,6 +1369,7 @@
                 
                 html += `
                     <tr>
+                        <td style="text-align: center;">${i + 1}</td>
                         <td><strong>${inv.name}</strong></td>
                         <td>${inv.description}</td>
                         <td style="text-align: right;">$${inv.amount}M</td>
@@ -1520,6 +1522,7 @@
             let html = `
                 <thead>
                     <tr>
+                        <th style="text-align: center;">#</th>
                         <th>Investment Name</th>
                         <th style="text-align: right;">Expected Impact</th>
                         <th style="text-align: right;">Impact ROI (tons/$ invested)</th>
@@ -1550,6 +1553,7 @@
                 
                 html += `
                     <tr>
+                        <td style="text-align: center;">${i + 1}</td>
                         <td><strong>${inv.name}</strong></td>
                         <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
                         <td style="text-align: right;">

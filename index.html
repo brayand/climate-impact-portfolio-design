@@ -1148,7 +1148,7 @@
                                       optimizedReturn, optimizedStdDev, optimizedSharpe);
             displayOriginalPortfolioTable(originalWeights, totalAmount);
             displaySectorAllocationChart(originalWeights);
-            displayWeightsTable(originalWeights, optimizedWeights, totalAmount);
+            displayWeightsTable(originalWeights, optimizedWeights, totalAmount, optimizedReturn, optimizedStdDev);
             displayRiskReturnAnalysis(originalWeights, optimizedWeights, covMatrix);
         }
 
@@ -1365,11 +1365,11 @@
                         <th style="text-align: right;">Amount</th>
                         <th>Sector</th>
                         <th style="text-align: right;">Expected Impact</th>
-                        <th style="text-align: right;">Impact ROI  (tons/$ invested)</th>
+                        <th style="text-align: right;">Impact ROI</th>
                         <th style="text-align: right;">Risk (StdDev)</th>
                         
                         
-                        <th style="text-align: right;">Sharpe Ratio</th>
+                        <th style="text-align: right;">Sharpe Ratio (Impact / Risk)</th>
                         <th>Correlations</th>
                         <th style="text-align: center;">Weight</th>
                     </tr>
@@ -1394,12 +1394,12 @@
                         <td>${inv.description}</td>
                         <td style="text-align: right;">$${inv.amount}M</td>
                         <td>${inv.sector}</td>
-                        <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
+                        <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons CO2e' : 'N/A'}</td>
                         <td style="text-align: right;">
-                            <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
+                            <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) + ' tons/$ invested' : 'N/A'}</span>
                         </td>
                         <td style="text-align: right;">
-                            ±${stdDevVal.toFixed(2)}M<br>
+                            ±${stdDevVal.toFixed(2)}M tons CO2e<br>
                             <span style="font-size: 11px; color: #666;">(${relstddev > 0 ? (relstddev * 100).toFixed(1) + '%)' : 'N/A'}</span>
                         </td>
                         
@@ -1408,17 +1408,32 @@
                             <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
                         </td>
                         <td style="font-size: 11px; color: #666;">${inv.correlations}</td>
-                        <td>
-                            <div class="weight-viz">
-                                <div class="weight-bar-container">
-                                    <div class="weight-bar-fill" style="width: ${origWeight * 100}%; background: #e0e0e0;"></div>
-                                </div>
-                                <span class="weight-percentage">${(origWeight * 100).toFixed(1)}%</span>
-                            </div>
-                        </td>
+                        <td style="text-align: center;">${(origWeight * 100).toFixed(1)}%</td>
                     </tr>
                 `;
             });
+            
+            const covMatrix = calculateCovarianceMatrix();
+            const originalReturn = calculatePortfolioReturn(originalWeights);
+            const originalStdDev = calculatePortfolioStdDev(originalWeights, covMatrix);
+            const originalSharpe = originalStdDev > 0 ? originalReturn / originalStdDev : 0;
+            const totalExpectedImpact = originalReturn * totalAmount;
+            
+            html += `
+                <tr style="font-weight: 600; background: #f5f5f5; border-top: 2px solid #1b5e20;">
+                    <td style="text-align: center;"></td>
+                    <td>Total</td>
+                    <td>—</td>
+                    <td style="text-align: right;">$${totalAmount.toFixed(0)}M</td>
+                    <td>—</td>
+                    <td style="text-align: right;">${totalExpectedImpact.toFixed(2)}M tons CO2e</td>
+                    <td style="text-align: right;">${originalReturn > 0 ? originalReturn.toFixed(3) + ' tons/$ invested' : 'N/A'}</td>
+                    <td style="text-align: right;">±${(originalStdDev * totalAmount).toFixed(2)}M tons CO2e</td>
+                    <td style="text-align: right;">${originalSharpe.toFixed(2)}</td>
+                    <td style="font-size: 11px; color: #666;">—</td>
+                    <td style="text-align: center;">100%</td>
+                </tr>
+            `;
             
             html += '</tbody>';
             document.getElementById('originalPortfolioTable').innerHTML = html;
@@ -1538,21 +1553,20 @@
             container.innerHTML = html;
         }
 
-        function displayWeightsTable(originalWeights, optimizedWeights, totalAmount) {
+        function displayWeightsTable(originalWeights, optimizedWeights, totalAmount, optimizedReturn, optimizedStdDev) {
             let html = `
                 <thead>
                     <tr>
                         <th style="text-align: center;">#</th>
                         <th>Investment Name</th>
-                        <th style="text-align: right;">Expected Impact</th>
-                        <th style="text-align: right;">Impact ROI (tons/$ invested)</th>
-                        <th style="text-align: right;">Risk</th>
-                                                
-                        <th style="text-align: right;">Sharpe Ratio</th>
-                        <th style="text-align: right;">P90 Impact</th>
-                        <th style="text-align: center;">Original Weight</th>
-                        <th style="text-align: center;">Optimized Weight</th>
+                        <th style="text-align: right;">Optimized Dollar Amount</th>
                         <th style="text-align: right;">Change</th>
+                        <th style="text-align: right;">Original Dollar Amount</th>
+                        <th style="text-align: right;">Impact ROI</th>
+                        <th style="text-align: right;">Expected Impact</th>
+                        <th style="text-align: right;">Risk</th>
+                        <th style="text-align: right;">P90 Impact</th>
+                        <th style="text-align: right;">Sharpe Ratio (Impact / Risk)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1561,10 +1575,13 @@
             investments.forEach((inv, i) => {
                 const origWeight = originalWeights[i];
                 const optWeight = optimizedWeights[i];
+                const origDollar = origWeight * totalAmount;
+                const optDollar = optWeight * totalAmount;
                 const change = ((optWeight - origWeight) / origWeight * 100);
                 const impactVal = inv.impactValue || 0;
                 const stdDevVal = inv.stddev || 0.1;
                 const impactROI = inv.impactROI || 0;
+                const expectedImpactAmount = impactROI * optDollar; // Impact ROI (M tons/$M) × Optimized $M = M tons
                 const relstddev = inv.relstddev || 0;
                 const p90 = calculateP90(impactVal, stdDevVal);
                 const sharpe = inv.sharpeRatio || 0;
@@ -1575,44 +1592,47 @@
                     <tr>
                         <td style="text-align: center;">${i + 1}</td>
                         <td><strong>${inv.name}</strong></td>
-                        <td style="text-align: right;">${impactVal > 0 ? impactVal.toFixed(2) + 'M tons' : 'N/A'}</td>
-                        <td style="text-align: right;">
-                            <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) : 'N/A'}</span>
-                        </td>
-                        <td style="text-align: right;">
-                            ±${stdDevVal.toFixed(2)}M<br>
-                            <span style="font-size: 11px; color: #666;">(${relstddev > 0 ? (relstddev * 100).toFixed(1) + '%)' : 'N/A'}</span>
-                        </td>
-                        
-                        
-                        <td style="text-align: right;">
-                            <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
-                        </td>
-                        <td style="text-align: right;">${p90.toFixed(2)}M</td>
-                        <td>
-                            <div class="weight-viz">
-                                <div class="weight-bar-container">
-                                    <div class="weight-bar-fill" style="width: ${origWeight * 100}%; background: #e0e0e0;"></div>
-                                </div>
-                                <span class="weight-percentage">${(origWeight * 100).toFixed(1)}%</span>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="weight-viz">
-                                <div class="weight-bar-container">
-                                    <div class="weight-bar-fill" style="width: ${optWeight * 100}%;"></div>
-                                </div>
-                                <span class="weight-percentage">${(optWeight * 100).toFixed(1)}%</span>
-                            </div>
-                        </td>
+                        <td style="text-align: right;">$${optDollar.toFixed(1)}M <span style="font-size: 11px; color: #666;">(${(optWeight * 100).toFixed(1)}%)</span></td>
                         <td style="text-align: right;">
                             <span class="change-indicator ${change > 0 ? 'change-positive' : change < 0 ? 'change-negative' : ''}">
                                 ${change > 0 ? '+' : ''}${change.toFixed(1)}%
                             </span>
                         </td>
+                        <td style="text-align: right;">$${origDollar.toFixed(1)}M <span style="font-size: 11px; color: #666;">(${(origWeight * 100).toFixed(1)}%)</span></td>
+                        <td style="text-align: right;">
+                            <span style="color: ${roiColor}; font-weight: 600;">${impactROI > 0 ? impactROI.toFixed(3) + ' tons/$ invested' : 'N/A'}</span>
+                        </td>
+                        <td style="text-align: right;">${expectedImpactAmount > 0 ? expectedImpactAmount.toFixed(2) + 'M tons CO2e' : 'N/A'}</td>
+                        <td style="text-align: right;">
+                            ±${stdDevVal.toFixed(2)}M tons CO2e<br>
+                            <span style="font-size: 11px; color: #666;">(${relstddev > 0 ? (relstddev * 100).toFixed(1) + '%)' : 'N/A'}</span>
+                        </td>
+                        <td style="text-align: right;">${p90.toFixed(2)}M tons CO2e</td>
+                        <td style="text-align: right;">
+                            <span style="color: ${sharpeColor}; font-weight: 600;">${sharpe.toFixed(2)}</span>
+                        </td>
                     </tr>
                 `;
             });
+            
+            const totalExpectedImpact = optimizedReturn * totalAmount;
+            const portfolioP90 = calculateP90(optimizedReturn * totalAmount, optimizedStdDev * totalAmount);
+            const portfolioSharpe = optimizedStdDev > 0 ? optimizedReturn / optimizedStdDev : 0;
+            
+            html += `
+                <tr style="font-weight: 600; background: #f5f5f5; border-top: 2px solid #1b5e20;">
+                    <td style="text-align: center;"></td>
+                    <td>Total</td>
+                    <td style="text-align: right;">$${totalAmount.toFixed(1)}M <span style="font-size: 11px; color: #666;">(100%)</span></td>
+                    <td style="text-align: right;">—</td>
+                    <td style="text-align: right;">$${totalAmount.toFixed(1)}M <span style="font-size: 11px; color: #666;">(100%)</span></td>
+                    <td style="text-align: right;">${optimizedReturn > 0 ? optimizedReturn.toFixed(3) + ' tons/$ invested' : 'N/A'}</td>
+                    <td style="text-align: right;">${totalExpectedImpact.toFixed(2)}M tons CO2e</td>
+                    <td style="text-align: right;">±${(optimizedStdDev * totalAmount).toFixed(2)}M tons CO2e</td>
+                    <td style="text-align: right;">${portfolioP90.toFixed(2)}M tons CO2e</td>
+                    <td style="text-align: right;">${portfolioSharpe.toFixed(2)}</td>
+                </tr>
+            `;
             
             html += '</tbody>';
             document.getElementById('weightsTable').innerHTML = html;
@@ -2039,7 +2059,7 @@
                                     <circle cx="${invX}" cy="${invY}" r="8" fill="${color}" opacity="0.8" stroke="white" stroke-width="2">
                                         <title>${inv.name}
 Impact ROI: ${impactROI > 0 ? impactROI.toFixed(3) + ' M tons/$' : 'N/A'}
-Risk: ±${stdDevVal}M tons
+Risk: ±${stdDevVal}M tons CO2e
 Sharpe: ${sharpe.toFixed(2)}
 Impact: ${impactVal > 0 ? impactVal + 'M tons/year' : 'N/A'}
 P90: ${impactVal > 0 ? calculateP90(impactVal, stdDevVal).toFixed(2) + 'M' : 'N/A'}</title>
@@ -2059,8 +2079,8 @@ P90: ${impactVal > 0 ? calculateP90(impactVal, stdDevVal).toFixed(2) + 'M' : 'N/
                             return `
                                 <circle cx="${x}" cy="${y}" r="3" fill="#1b5e20" opacity="0.3">
                                     <title>Efficient Portfolio
-                                    Impact ROI: ${p.impactROI.toFixed(3)} M tons/$
-                                    Risk: ±${p.risk.toFixed(2)}M tons
+                                    Impact ROI: ${p.impactROI.toFixed(3)} M tons CO2e/$
+                                    Risk: ±${p.risk.toFixed(2)}M tons CO2e
                                     Sharpe: ${p.sharpe.toFixed(2)}</title>
                                 </circle>
                             `;
